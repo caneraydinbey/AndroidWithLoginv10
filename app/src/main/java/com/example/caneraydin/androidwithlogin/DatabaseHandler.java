@@ -25,7 +25,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     //// TODO: 30.04.2016 basharfleri kucult
     // All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 100;
+    private static final int DATABASE_VERSION = 105;
     private String TAG = "Chic";
 
     // Database Name
@@ -350,7 +350,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding object to list
                 objectList.add(object);
-                //  Log.d(TAG,object.toString());//gecici bu
+                  Log.d(TAG,object.toString());//gecici bu//// TODO: 5/27/2016 sil 
             } while (cursor.moveToNext());
         }
 
@@ -385,7 +385,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding trainingObject to list
                 trainingObjectList.add(trainingObject);
-                //  Log.d(TAG,trainingObject.toString());//gecici bu
+                  Log.d(TAG,trainingObject.toString());//gecici bu//// TODO: 5/27/2016 sil
             } while (cursor.moveToNext());
         }
 
@@ -667,7 +667,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding trainingObject to list
                 trainingObjectList.add(trainingObject);
-                   Log.d(TAG,trainingObject.toString());//gecici bu
+                   Log.d(TAG,trainingObject.toString());//gecici bu//// TODO: 5/27/2016 sil 
             } while (cursor.moveToNext());
         }
 
@@ -933,7 +933,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         //  select * from object where objectid in(SELECT trainingobjectanswer FROM trainingobject WHERE trainingid='$trainingid');
         // Select All demoQuery
-        String selectQuery = "SELECT  * FROM " + TABLE_OBJECT + " WHERE " + KEY_OBJECT_ID +
+        String selectQuery = "SELECT DISTINCT * FROM " + TABLE_OBJECT + " WHERE " + KEY_OBJECT_ID +
                 " IN ( SELECT " + KEY_TRAINING_OBJECT_ANSWER + " FROM " + TABLE_TRAINING_OBJECT + " WHERE " + KEY_TRAINING_ID + " = " + id + ");";
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -954,7 +954,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding object to list
                 objectList.add(object);
-                //    Log.d(TAG,object.toString());//gecici bu
+                    Log.d(TAG,object.toString());//gecici bu//// TODO: 5/27/2016 sil 
             } while (cursor.moveToNext());
         }
 

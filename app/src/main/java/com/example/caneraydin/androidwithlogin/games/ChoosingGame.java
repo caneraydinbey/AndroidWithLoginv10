@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -11,6 +12,7 @@ import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Display;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AlphaAnimation;
@@ -92,6 +94,8 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
     ImageView [] correctImage ;//cevabi tutayim diye
     int firstImgId, secondImgId, thirdImgId, fourthImgId, fifthImgId;
 
+    int width,height;
+
     public void setupDemo(){
 
         Log.d(TAG,"choosing gamesetupdemo");
@@ -111,7 +115,7 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
         demoObjectObject = dbHandler.getDemoObjectObject(trainingID);
 
-        final RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(140,140);
+        final RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
         //putting middle to show demo of items in each iteration
         rLayParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
@@ -224,7 +228,7 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
         Log.d(TAG, "chossing game settwoobjectlayout");
 
-        RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(140,140);
+        RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
         rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);
@@ -249,7 +253,7 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
         objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectTwo());
 
-        rLayParams = new RelativeLayout.LayoutParams(140,140);
+        rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);
@@ -272,7 +276,7 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
         Log.d(TAG, "chossing game setfourobjectlayout");
 
-        RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(140,140);
+        RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
@@ -297,7 +301,7 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
         objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectTwo());
 
-        rLayParams = new RelativeLayout.LayoutParams(140,140);
+        rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
@@ -321,7 +325,7 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
         objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectThree());
 
-        rLayParams = new RelativeLayout.LayoutParams(140,140);
+        rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
@@ -345,7 +349,7 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
         objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectFour());
 
-        rLayParams = new RelativeLayout.LayoutParams(140,140);
+        rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
@@ -481,7 +485,7 @@ Log.d(TAG,dbHandler.getColorName(objectAnswer.getColorID())+" - "+dbHandler.getS
 
                 objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectThree());
 
-                rLayParams = new RelativeLayout.LayoutParams(140,140);
+                rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
                 rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);//ortaya gelecek
 
@@ -520,7 +524,7 @@ Log.d(TAG,dbHandler.getColorName(objectAnswer.getColorID())+" - "+dbHandler.getS
 
                 objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectFive());
 
-                rLayParams = new RelativeLayout.LayoutParams(140,140);
+                rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
                 rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);//ortaya gelecek
 
@@ -621,8 +625,8 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
                                         if (!CheckNetwork.isOnline(ChoosingGame.this)) {
                                             Log.d(TAG, "choosinggame no db no wifi, checknetworktrue");
                                             CheckNetwork.showNoConnectionDialog(ChoosingGame.this, false); //display dialog
-                                        } else {
-                                            new CreateTrainingResponse(ChoosingGame.this).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
+                                        } else {//// TODO: 5/27/2016 burdan yollayinca mainactivity boolean degistirilemiyor. o yüzden maine yollamak lazim.
+                                            new CreateTrainingResponse(ChoosingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
                                             //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
                                             //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
                                             Intent intent = new Intent(ChoosingGame.this, MainActivity.class);
@@ -671,6 +675,13 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choosegame);
 
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        width = size.x;
+        height = size.y;
+        Log.d(TAG,"width:"+width+" height:"+height);//// TODO: 5/27/2016 sil
+
         tts = new TextToSpeech(this,this);
 
         dbHandler = new DatabaseHandler(this);
@@ -701,7 +712,7 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
 
 /*
 //todo sill
-        final RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(140,140);
+        final RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
         //putting middle to show demo of items in each iteration
         rLayParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
@@ -755,7 +766,7 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
                     if(trainingObject.getTrainingobjectFive()!=0) objectCount++;
                     Log.d(TAG,"matchinggame objcount: "+objectCount);
 
-                    RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(140,140);
+                    RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
                     rLayParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
                     rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);
@@ -864,7 +875,7 @@ dbHandler.setTrainingCompletedAll(trainingID);
                                         Log.d(TAG, "choosinggame no db no wifi, checknetworktrue");
                                         CheckNetwork.showNoConnectionDialog(ChoosingGame.this, false); //display dialog
                                     } else {
-                                        new CreateTrainingResponse(ChoosingGame.this).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
+                                        new CreateTrainingResponse(ChoosingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
                                         //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
                                         //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
                                         Intent intent = new Intent(ChoosingGame.this, MainActivity.class);
@@ -904,7 +915,7 @@ dbHandler.setTrainingCompletedAll(trainingID);
                                             Log.d(TAG, "choosinggame no db no wifi, checknetworktrue");
                                             CheckNetwork.showNoConnectionDialog(ChoosingGame.this, false); //display dialog
                                         } else {
-                                            new CreateTrainingResponse(ChoosingGame.this).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
+                                            new CreateTrainingResponse(ChoosingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
                                             //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
                                             //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
                                             Intent intent = new Intent(ChoosingGame.this, MainActivity.class);
@@ -981,7 +992,7 @@ dbHandler.setTrainingCompletedAll(trainingID);
                                             Log.d(TAG, "choosinggame no db no wifi, checknetworktrue");
                                             CheckNetwork.showNoConnectionDialog(ChoosingGame.this, false); //display dialog
                                         } else {
-                                            new CreateTrainingResponse(ChoosingGame.this).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
+                                            new CreateTrainingResponse(ChoosingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
                                             //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
                                             //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
                                             Intent intent = new Intent(ChoosingGame.this, MainActivity.class);

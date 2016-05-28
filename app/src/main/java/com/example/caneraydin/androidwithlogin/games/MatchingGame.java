@@ -671,7 +671,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                                             Log.d(TAG, "Matchgame no db no wifi, checknetworktrue");
                                             CheckNetwork.showNoConnectionDialog(MatchingGame.this, false); //display dialog
                                         } else {
-                                            new CreateTrainingResponse(MatchingGame.this).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
+                                            new CreateTrainingResponse(MatchingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
                                             //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
                                             //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
                                             Intent intent = new Intent(MatchingGame.this, MainActivity.class);
@@ -860,7 +860,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                                         Log.d(TAG, "MatchingGame no db no wifi, checknetworktrue");
                                         CheckNetwork.showNoConnectionDialog(MatchingGame.this, false); //display dialog
                                     } else {
-                                        new CreateTrainingResponse(MatchingGame.this).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
+                                        new CreateTrainingResponse(MatchingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
                                         //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
                                         //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
                                         Intent intent = new Intent(MatchingGame.this, MainActivity.class);
@@ -900,7 +900,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                                             Log.d(TAG, "MatchingGame no db no wifi, checknetworktrue");
                                             CheckNetwork.showNoConnectionDialog(MatchingGame.this, false); //display dialog
                                         } else {
-                                            new CreateTrainingResponse(MatchingGame.this).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
+                                            new CreateTrainingResponse(MatchingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
                                             //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
                                             //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
                                             Intent intent = new Intent(MatchingGame.this, MainActivity.class);
@@ -979,7 +979,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                                             Log.d(TAG, "MatchingGame no db no wifi, checknetworktrue");
                                             CheckNetwork.showNoConnectionDialog(MatchingGame.this, false); //display dialog
                                         } else {
-                                            new CreateTrainingResponse(MatchingGame.this).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
+                                            new CreateTrainingResponse(MatchingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
                                             //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
                                             //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
                                             Intent intent = new Intent(MatchingGame.this, MainActivity.class);

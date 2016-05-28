@@ -109,7 +109,7 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
         Log.d(TAG, "checkdatabaseupdate username: " + username + " lasttrainingsetupdate: " + lastTrainingSetUpdate);//+" lastobjectup: "+lastObjectUpdate);
 //http://oep.esy.es/check_database_update.php?studentusername=t&lasttrainingsetupdate=1464028657&lastobjectupdate=1460857129
         //http://oep.esy.es/check_database_update.php?studentusername=t&lasttrainingsetupdate=1464196649
-        String uri = "http://oep.esy.es/check_database_update.php?" + "studentusername=" + username + "&lastTrainingSetUpdate=" + lastTrainingSetUpdate;
+        String uri = "http://oep.esy.es/check_database_update.php?" + "studentusername=" + username + "&lasttrainingsetupdate=" + lastTrainingSetUpdate;
                 //"lastobjectupdate="+lastObjectUpdate;
 
         StringBuilder sb = new StringBuilder();
@@ -133,10 +133,33 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
             Log.d(TAG, "checkdatabaseupdate hata doin");
             return new String("Exception: " + e.getMessage());
         }
+        catch (NullPointerException ex) {
+            ex.printStackTrace();
+            ex.printStackTrace();
+            Log.d(TAG, "checkdatabaseupdate nullpointer exception1: "+ex);
+        }
+
+        Log.d(TAG, "******");
+        Log.d(TAG, "******");
+        // if(result.equals("newtrainings")){
+        //   Log.d(TAG, "getalldatabase onpostexe result newtrainings: ");
+        int maxLogSize = 100;
+        for(int i = 0; i <= sb.length() / maxLogSize; i++) {
+            int start = i * maxLogSize;
+            int end = (i+1) * maxLogSize;
+            end = end > sb.length() ? sb.length() : end;
+                Log.d(TAG, sb.substring(start, end));
+        }
+
+        Log.d(TAG, "******");
+        Log.d(TAG, "******");
+        Log.d(TAG, "******");
+        Log.d(TAG, "******");
+
 
 /// TODO: 28.04.2016 bu kontrol yerine success 1 mi 0 mi ile yap jsonArray verisi kullanarak
        // if(!sb.equals("nonewtrainings")) {
-            Log.d(TAG, "checkdatabaseupdate sb newtrainings: " + sb);
+          //  Log.d(TAG, "checkdatabaseupdate sb newtrainings: " + sb);
          //   Toast.makeText(context, "New trainings were added, they need to be added to local database..", Toast.LENGTH_LONG).show();
             // Intent intent = new Intent(context, MainActivity.class);
             //  intent.putExtra("username", username);
@@ -200,7 +223,7 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
                     trainingSet.setTrainingsetCreateTime(c.getInt(KEY_TRAINING_SET_CREATE_TIME));
                     trainingSet.setTrainingsetFinishTime(c.getString(KEY_TRAINING_SET_FINISH_TIME));
 
-                    //  Log.d(TAG, "GetAllDatabasetrainingset: "+trainingSet.toString());
+                  //   Log.d(TAG, "GetAllDatabasetrainingset: "+trainingSet.toString());
                     dbHandler.addTrainingSet(trainingSet);
 
                 }//end of for
@@ -228,7 +251,7 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
 
                     //  Log.d(TAG, "GetAllDatabasetrainingset: "+trainingSet.toString());
                     dbHandler.addTraining(training);
-                    //  Log.d(TAG,"GetAllDatabasetirainng: "+training.toString());
+                     // Log.d(TAG,"GetAllDatabasetirainng: "+training.toString());//// TODO: 5/27/2016 sil
 
                 }//end of for
                 jsonArray = null;
@@ -249,14 +272,23 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
                     trainingObject.setTrainingobjectAnswer(c.getInt   (KEY_TRAINING_OBJECT_ANSWER));
                     trainingObject.setTrainingobjectOne(c.getInt(KEY_TRAINING_OBJECT_ONE));
                     trainingObject.setTrainingobjectTwo(c.getInt (KEY_TRAINING_OBJECT_TWO));
-                    if(!c.getString(KEY_TRAINING_OBJECT_THREE).equals("null"))
-                        trainingObject.setTrainingobjectThree(c.getInt  (KEY_TRAINING_OBJECT_THREE));
-                    if(!c.getString (KEY_TRAINING_OBJECT_FOUR).equals("null"))
+                    if(!c.getString(KEY_TRAINING_OBJECT_THREE).equals("null")) {
+                        trainingObject.setTrainingobjectThree(c.getInt(KEY_TRAINING_OBJECT_THREE));
+                    }else{
+                        trainingObject.setTrainingobjectThree(Integer.valueOf("null"));
+                    }
+                    if(!c.getString (KEY_TRAINING_OBJECT_FOUR).equals("null")){
                         trainingObject.setTrainingobjectFour(c.getInt   (KEY_TRAINING_OBJECT_FOUR));
-                    if(!c.getString (KEY_TRAINING_OBJECT_FIVE).equals("null"))
+                    }else{
+                        trainingObject.setTrainingobjectThree(Integer.valueOf("null"));
+                    }
+                    if(!c.getString (KEY_TRAINING_OBJECT_FIVE).equals("null")){
                         trainingObject.setTrainingobjectFive(c.getInt   (KEY_TRAINING_OBJECT_FIVE));
+                    }else{
+                        trainingObject.setTrainingobjectThree(Integer.valueOf("null"));
+                    }//// TODO: 5/28/2016 null da koyulabilir buralara. ya da sıfır. çünkü levelden bakiyor zaten.
 
-                    //  Log.d(TAG, "GetAllDatabasetrainingset: "+trainingSet.toString());
+                    //  Log.d(TAG, "GetAllDatabasetrainingset: "+trainingObject.toString());//// TODO: 5/27/2016 sil
                     dbHandler.addTrainingObject(trainingObject);
 
                 }//end of for
@@ -275,7 +307,7 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
                     shape.setShapeID(c.getInt    (KEY_SHAPE_ID));
                     shape.setShapeName(c.getString (KEY_SHAPE_NAME));
 
-                    //  Log.d(TAG, "GetAllDatabasetrainingset: "+trainingSet.toString());
+                     // Log.d(TAG, "GetAllDatabasetrainingset: "+shape.toString());//// TODO: 5/27/2016 sil
                     dbHandler.addShape(shape);
 
                 }//end of for
@@ -295,7 +327,7 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
                     color.setColorID(c.getInt (KEY_COLOR_ID));
                     color.setColorName(c.getString (KEY_COLOR_NAME));
 
-                    //  Log.d(TAG, "GetAllDatabasetrainingset: "+trainingSet.toString());
+                    //  Log.d(TAG, "GetAllDatabasetrainingset: "+color.toString());//// TODO: 5/27/2016 sil
                     dbHandler.addColor(color);
 
                 }//end of for
@@ -310,7 +342,7 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
                 for (int i = 0; i < jsonArray.length(); i++) {
                     c = null;
                     c = jsonArray.getJSONObject(i);
-                    //    Log.d(TAG,"GetAllDatabaseobject: "+c.toString());
+                        Log.d(TAG,"GetAllDatabaseobject: "+c.toString());//// TODO: 5/27/2016 sil
                     object.setColorID(c.getInt   (KEY_COLOR_ID));
                     object.setObjectID(c.getInt      (KEY_OBJECT_ID));
                     object.setObjectName(c.getString   (KEY_OBJECT_NAME));
@@ -320,6 +352,9 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
                     object.setCreateTime  (c.getString  (KEY_CREATE_TIME));
                     object.setObjectImageBlob(Base64.decode(c.getString(KEY_OBJECT_IMAGE_BLOB),Base64.DEFAULT));
 
+                    dbHandler.addObject(object);
+                 //   Log.d(TAG, "GetAllDatabasetrainingset: "+object.toString());//// TODO: 5/27/2016 sil
+
         }//end of for
                  dbHandler.getAllTrainingSet();
             }
@@ -328,7 +363,12 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.d(TAG, "hata,jsnarytrainingset");
+            Log.d(TAG, "checkdatabase hata,jsnarytrainingset");
+        }
+        catch (NullPointerException ex) {
+            ex.printStackTrace();
+            ex.printStackTrace();
+            Log.d(TAG, "checkdatabase pointer exception: "+ex);
         }
 
         Log.d(TAG, "checkdatabaseupdate gettingtraningset:");

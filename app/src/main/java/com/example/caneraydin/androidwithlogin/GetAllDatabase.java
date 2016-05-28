@@ -299,18 +299,27 @@ public class GetAllDatabase extends AsyncTask<String,Void,String> {
                 c = null;
                 c = jsonArray.getJSONObject(i);
 
-             trainingObject.setTrainingobjectID(c.getInt    (KEY_TRAINING_OBJECT_ID));
-                    trainingObject.setTrainingID(c.getInt    (KEY_TRAINING_ID));
+                trainingObject.setTrainingobjectID(c.getInt    (KEY_TRAINING_OBJECT_ID));
+                trainingObject.setTrainingID(c.getInt    (KEY_TRAINING_ID));
                 trainingObject.setTrainingobjectLevel(c.getInt     (KEY_TRAINING_OBJECT_LEVEL));
-                      trainingObject.setTrainingobjectAnswer(c.getInt   (KEY_TRAINING_OBJECT_ANSWER));
-                         trainingObject.setTrainingobjectOne(c.getInt(KEY_TRAINING_OBJECT_ONE));
-                        trainingObject.setTrainingobjectTwo(c.getInt (KEY_TRAINING_OBJECT_TWO));
-                if(!c.getString(KEY_TRAINING_OBJECT_THREE).equals("null"))
-                       trainingObject.setTrainingobjectThree(c.getInt  (KEY_TRAINING_OBJECT_THREE));
-                if(!c.getString (KEY_TRAINING_OBJECT_FOUR).equals("null"))
-                      trainingObject.setTrainingobjectFour(c.getInt   (KEY_TRAINING_OBJECT_FOUR));
-                if(!c.getString (KEY_TRAINING_OBJECT_FIVE).equals("null"))
-                      trainingObject.setTrainingobjectFive(c.getInt   (KEY_TRAINING_OBJECT_FIVE));
+                trainingObject.setTrainingobjectAnswer(c.getInt   (KEY_TRAINING_OBJECT_ANSWER));
+                trainingObject.setTrainingobjectOne(c.getInt(KEY_TRAINING_OBJECT_ONE));
+                trainingObject.setTrainingobjectTwo(c.getInt (KEY_TRAINING_OBJECT_TWO));
+                if(!c.getString(KEY_TRAINING_OBJECT_THREE).equals("null")) {
+                    trainingObject.setTrainingobjectThree(c.getInt(KEY_TRAINING_OBJECT_THREE));
+                }else{
+                    trainingObject.setTrainingobjectThree(Integer.valueOf("null"));
+                }
+                if(!c.getString (KEY_TRAINING_OBJECT_FOUR).equals("null")){
+                    trainingObject.setTrainingobjectFour(c.getInt   (KEY_TRAINING_OBJECT_FOUR));
+                }else{
+                    trainingObject.setTrainingobjectThree(Integer.valueOf("null"));
+                }
+                if(!c.getString (KEY_TRAINING_OBJECT_FIVE).equals("null")){
+                    trainingObject.setTrainingobjectFive(c.getInt   (KEY_TRAINING_OBJECT_FIVE));
+                }else{
+                    trainingObject.setTrainingobjectThree(Integer.valueOf("null"));
+                }//// TODO: 5/28/2016 null da koyulabilir buralara
 
                 //  Log.d(TAG, "GetAllDatabasetrainingset: "+trainingSet.toString());
                 dbHandler.addTrainingObject(trainingObject);

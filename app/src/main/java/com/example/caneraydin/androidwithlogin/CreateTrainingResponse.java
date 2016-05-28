@@ -43,12 +43,13 @@ public class CreateTrainingResponse extends AsyncTask<Integer, String, String> {
     TrainingResponse trainingResponse;
     List<TrainingResponse> trainingResponseList;
 
-    boolean ifAnyErrors = false;//// TODO: 5/22/2016 bunu koydum hata icin, diger yerlere de koymak lazim. bu false ise veritabanini localde güncellesin
+    boolean ifAnyErrors = false,//// TODO: 5/22/2016 bunu koydum hata icin, diger yerlere de koymak lazim. bu false ise veritabanini localde güncellesin
+fromMain = false;//mainden geliyorsa maindeki booleani degisterbiliyorum.oyunlardang eliyorsa gerek yok makindeki booleana
 
-
-    public CreateTrainingResponse(Context context) {
+    public CreateTrainingResponse(Context context,boolean fromMain) {
         Log.d(TAG, "CreateTrainingResponse consturct");
         this.context = context;
+        this.fromMain = fromMain;
     }
 
     @Override
@@ -138,7 +139,10 @@ public class CreateTrainingResponse extends AsyncTask<Integer, String, String> {
 //// TODO: 5/20/2016 maine gitme belki 
         dialog.dismiss();
 
-        MainActivity mainActivity = (MainActivity) context;
-        mainActivity.setCreateTrainingResponseAsyncExecuted(false);
+        if(fromMain) {
+            MainActivity mainActivity = (MainActivity) context;
+            mainActivity.setCreateTrainingResponseAsyncExecuted(false);
+        }
+        Log.d(TAG, "createtrainingresponse ends************");
     }//postexecuteend
 }//class end

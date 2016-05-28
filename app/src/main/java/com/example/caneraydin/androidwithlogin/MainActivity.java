@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity  {
                             Log.d(TAG, "mainonresume dbhandler dbexists true, size>0 inside for executingfor traid getAllDBAsyncExecuted false");
                             //her seferinde bir tane yollasin diye, birden fazla olmasin diye.
                             createTrainingResponseAsyncExecuted = true;
-                        new CreateTrainingResponse(MainActivity.this).execute(unsendResponseTrainingIDs.get(i));
+                        new CreateTrainingResponse(MainActivity.this, true).execute(unsendResponseTrainingIDs.get(i));
                         }//// TODO: 5/25/2016 ayni anda calissin diye bir sey var asynctasklar ama yapmiyorum.sirayla calisacaklar. zaten 2 tanesi cakisabiliyor
                     }//for end
                 }
@@ -230,9 +230,10 @@ public class MainActivity extends AppCompatActivity  {
         rdioGrpUncompleted = new RadioGroup(this);
         rdioGrpHalfCompleted = new RadioGroup(this);
 
-dbHandler.getAllTrainingResponse();
-//dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
-  
+dbHandler.getAllTrainingResponse();//// TODO: 5/25/2016 sil
+dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
+   dbHandler.getAllObjectObject();     //// TODO: 5/25/2016 sil
+        dbHandler.getAllTrainingObject();     //// TODO: 5/25/2016 sil
       // Log.d(TAG,"LEVEL:"+ dbHandler.getCurrentLevel(86));
 
         textMain.setText("Hoşgeldin " + username);
@@ -243,7 +244,8 @@ dbHandler.getAllTrainingResponse();
 
         //// TODO: 30.04.2016 if sqlite=nullsa alttakini cagir. ama ya baska kullanıcı girdiyse dolduduysa db ne olacak. bu ihtimali göz ardı ediyorum
         
-            if (!dbHandler.ifDatabaseExists()) {
+        //// TODO: 5/27/2016 burayi block comment yaptim cünkü zaten resumede da aynisi var 
+          /*  if (!dbHandler.ifDatabaseExists()) {
                 Log.d(TAG, "main activity dbhandler dbexists false,getalldb will vbeexecuted");
                 if ( CheckNetwork.isOnline(this)) {
                     if(!getAllDBAsyncExecuted) {
@@ -269,7 +271,7 @@ dbHandler.getAllTrainingResponse();
                             Log.d(TAG, "main dbhandler dbexists true size>0insidefor exevuting createtrainnigrsponse fortrainingid: "+unsendResponseTrainingIDs.get(i));
                             if(!createTrainingResponseAsyncExecuted) {
                                 createTrainingResponseAsyncExecuted = true;//todo acaba checkdb baslsmis olabilri mi, nasil olur ki öyle
-                                new CreateTrainingResponse(MainActivity.this).execute(unsendResponseTrainingIDs.get(i));
+                                new CreateTrainingResponse(MainActivity.this, true).execute(unsendResponseTrainingIDs.get(i));
                             }
                         }//for end
                     } else {
@@ -289,7 +291,7 @@ dbHandler.getAllTrainingResponse();
                     CheckNetwork.showNoConnectionDialog(this,false);//// TODO: 5/25/2016 hic egitim yoksa kontrol lazim sanki
                 }
                 showTrainingsUI();
-            }
+            }*/
 
 
 //// TODO: 02.05.2016 halfcompelted yap-yapildi
