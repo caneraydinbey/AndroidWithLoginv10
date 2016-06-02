@@ -8,29 +8,36 @@ public class TrainingResponse {
     int trainingResponseID;
     int trainingID;
     String studentUserName;
-    int objectID;
+   // int objectID;
     String trainingResponseFinishTime;//unix
     int trainingResponseScore;
-//// TODO: 29.04.2016  gonderilip gonderilmedigini kontrol et bu tablodakilerin, ayri bir kolon
+//yapildi ttodo yap 29.04.2016  gonderilip gonderilmedigini kontrol et bu tablodakilerin, ayri bir kolon
 
     int trainingStarted;//bu sadece benim localde olacak, oraya gitmeyecek.
     int trainingCompleted;//bu sadece benim localde olacak, oraya gitmeyecek.hepsi tamamlaninca bunlarin hepsi 1 olacak
     int responseSent;//bu sadece benim localde olacak, oraya gitmeyecek
+    int questionObjectID;
+    int answerObjectID;
+    int answerTwoObjectID;
 
-    public TrainingResponse( int trainingID, String studentUserName, int objectID, int trainingResponseScore, String trainingResponseFinishTime,
+    public TrainingResponse( int trainingID, String studentUserName, int questionObjectID, int answerObjectID, int answerTwoObjectID,
+                             int trainingResponseScore, String trainingResponseFinishTime,
                             int responseSent, int trainingStarted,int trainingCompleted) {
         this.trainingCompleted = trainingCompleted;
         this.trainingStarted = trainingStarted;
       //  this.trainingResponseID = trainingResponseID;
         this.trainingID = trainingID;
         this.studentUserName = studentUserName;
-        this.objectID = objectID;
+  //      this.objectID = objectID;
         this.trainingResponseFinishTime = trainingResponseFinishTime;
         this.trainingResponseScore = trainingResponseScore;
         this.responseSent = responseSent;
+        this.questionObjectID = questionObjectID;
+        this.answerObjectID = answerObjectID;
+        this.answerTwoObjectID = answerTwoObjectID;
     }
 
-  /*  public TrainingResponse(int trainingResponseID, int trainingID, String studentUserName, int objectID, int trainingResponseScore, String trainingResponseFinishTime) {
+    /*  public TrainingResponse(int trainingResponseID, int trainingID, String studentUserName, int objectID, int trainingResponseScore, String trainingResponseFinishTime) {
         this.trainingResponseID = trainingResponseID;
         this.trainingID = trainingID;
         this.studentUserName = studentUserName;
@@ -40,6 +47,22 @@ public class TrainingResponse {
     }*/
 
     public TrainingResponse() {
+    }
+
+    public int getQuestionObjectID() {
+        return questionObjectID;
+    }
+
+    public void setQuestionObjectID(int questionObjectID) {
+        this.questionObjectID = questionObjectID;
+    }
+
+    public int getAnswerObjectID() {
+        return answerObjectID;
+    }
+
+    public void setAnswerObjectID(int answerObjectID) {
+        this.answerObjectID = answerObjectID;
     }
 
     public int getResponseSent() {
@@ -74,13 +97,13 @@ public class TrainingResponse {
         this.studentUserName = studentUserName;
     }
 
-    public int getObjectID() {
-        return objectID;
-    }
+  //  public int getObjectID() {
+   //     return objectID;
+   // }
 
-    public void setObjectID(int objectID) {
-        this.objectID = objectID;
-    }
+  //  public void setObjectID(int objectID) {
+       // this.objectID = objectID;
+    //}
 
     public String getTrainingResponseFinishTime() {
         return trainingResponseFinishTime;
@@ -114,18 +137,28 @@ public class TrainingResponse {
         this.trainingCompleted = trainingCompleted;
     }
 
+    public int getAnswerTwoObjectID() {
+        return answerTwoObjectID;
+    }
+
+    public void setAnswerTwoObjectID(int answerTwoObjectID) {
+        this.answerTwoObjectID = answerTwoObjectID;
+    }
+
     @Override
     public String toString() {
         return "TrainingResponse{" +
                 "trainingResponseID=" + trainingResponseID +
                 ", trainingID=" + trainingID +
                 ", studentUserName='" + studentUserName + '\'' +
-                ", objectID=" + objectID +
                 ", trainingResponseFinishTime='" + trainingResponseFinishTime + '\'' +
-                ", trainingResponseScore='" + trainingResponseScore + '\'' +
+                ", trainingResponseScore=" + trainingResponseScore +
                 ", trainingStarted=" + trainingStarted +
                 ", trainingCompleted=" + trainingCompleted +
                 ", responseSent=" + responseSent +
+                ", questionObjectID=" + questionObjectID +
+                ", answerObjectID=" + answerObjectID +
+                ", answerTwoObjectID=" + answerTwoObjectID +
                 '}';
     }
 }

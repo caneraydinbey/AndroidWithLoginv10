@@ -8,4 +8,6 @@
     <item name="imgThree" type="id"/>
     <item name="imgFour" type="id"/>
     <item name="imgFive" type="id"/>
+    <item name="one" type="id"/>
+    <item name="two" type="id"/>
 </resources>

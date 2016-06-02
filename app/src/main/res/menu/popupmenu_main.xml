@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/one"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:title="Oturumunuzu sonlandirin"
+        android:icon="@drawable/ic_logout" />
+
+    <item
+        android:id="@+id/two"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:title="Sonuclarinizi gorun"
+        android:icon="@drawable/ic_results" />
+
+</menu>

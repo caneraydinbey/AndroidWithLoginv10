@@ -1,20 +1,34 @@
 package com.example.caneraydin.androidwithlogin;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+
 import android.util.Log;
+import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+
+import android.widget.PopupMenu;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.caneraydin.androidwithlogin.domains.Training;
 import com.example.caneraydin.androidwithlogin.domains.TrainingResponse;
 import com.example.caneraydin.androidwithlogin.games.ChoosingGame;
 import com.example.caneraydin.androidwithlogin.games.CountingGame;
 import com.example.caneraydin.androidwithlogin.games.MatchingGame;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,21 +37,30 @@ import java.util.List;
 /**
  * Created by caneraydin on 17.04.2016.
  */
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends Activity {
     String TAG = "Chic";
-    String username="t";//// TODO: 30.04.2016 kaldir degeri
+    String username;//="t";//// TODO: 30.04.2016 kaldir degeri
     String imageURL = "http://oep.esy.es/images/object/";
    // int lastUpdate=1000000000;//// TODO: 28.04.2016 kaldir degeri
+
+    boolean wasDbExisted;
 
     TextView textMain, textHalfCompletedGames, textUnCompletedGames, textMatch;
 
    // ImageView imageChoose, imageCount, imageMatch;
+
+    ImageView backgroundImg,
+    settingsMenuPopup;
 
     DatabaseHandler dbHandler;
 
     RadioGroup rdioGrpUncompleted,rdioGrpHalfCompleted;
 
     List<Training> trainingList,trainingHalfList;
+
+    MediaPlayer mMediaPlayer;
+
+    PopupMenu popup;
 
     private boolean getAllDBAsyncExecuted =false,//not twice execute
             checkDBUpdateAsyncExecuted = false,//not twice
@@ -55,72 +78,110 @@ public class MainActivity extends AppCompatActivity  {
         this.getAllDBAsyncExecuted = getAllDBAsyncExecuted;
     }
 
+    public void onBackPressed() {
+        Log.d(TAG, "sound_mainactivity backbuttpn");
 
-
-    //ObjectObject object ;
-   // ScrollView sv;
-   // LinearLayout ll;
-
-   /* private Target target = new Target() {
-        @Override
-        public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {Log.d(TAG, "target onbitmaploaded"+" objimg.: "+object.getObjectImage());
-            new Thread(new Runnable() {
-                @Override
-                public void run() {Log.d(TAG, "thread run"+"objimg.: "+object.getObjectImage());
-
-                    File file = getFile();
-                    try {
-                        file.createNewFile();
-                        FileOutputStream ostream = new FileOutputStream(file);
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 75, ostream);
-                        ostream.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            }).start();
-        }
-
-        @Override
-        public void onBitmapFailed(Drawable errorDrawable) {Log.d(TAG, "onbitfaled"+" objimg.: "+object.getObjectImage());
-        }
-
-        @Override
-        public void onPrepareLoad(Drawable placeHolderDrawable) {Log.d(TAG, "onprepardeload"+" objimg.: "+object.getObjectImage());
-            if (placeHolderDrawable != null) {
+        final Context ctx = this;
+        AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+        builder.setCancelable(true);
+        builder.setTitle("Uygulamayi sonlandirmak istediginize emin misiniz?");
+        //builder.setMessage("Cikilsin mi?");
+        builder.setPositiveButton("Uygulamayi kapat", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                // terminateProcesses();
+                //sonlandiriyor
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.addCategory(Intent.CATEGORY_HOME);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                android.os.Process.killProcess(android.os.Process.myPid());//// TODO: 6/2/2016 böylemi olsun gecici simdilik
+                //finish();
             }
-        }
-    };
+        });
+        builder.setNegativeButton("Uygulamada kal", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                return;
+            }
+        });
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            public void onCancel(DialogInterface dialog) {
+                return;
+            }
+        });
+        builder.show();
+    }
 
-    private File getFile() {Log.d(TAG, "getfile"+"objimg.: "+object.getObjectImage());
-        ContextWrapper cw = new ContextWrapper(getApplicationContext());
-        // path to /data/data/yourapp/app_data/imageDir
-        File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
-        // Create imageDir
-        File file =new File(directory,object.getObjectImage()+".png");
-      //  count++;
-        Log.d(TAG," objimg.: "+object.getObjectImage());
-        if (!file.exists()) {
-            file.mkdirs();
+    @Override
+    protected void onPause() {
+        Log.d(TAG, "mainactivityonpause***********");
+        super.onPause();
+
+        if(mMediaPlayer.isPlaying()&&mMediaPlayer!=null ){
+            Log.d(TAG, "mainactivityonpause mediaisplay not null isplaying");
+            mMediaPlayer.pause();
         }
 
-        return file;
-    }*/
+        Log.d(TAG, "mainactivityonpause ends***********");
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "mainactivityondestry");
+        super.onDestroy();
+
+        if(mMediaPlayer!=null ) {
+            Log.d(TAG, "mainactivityondestry mediaisplay not null");
+            mMediaPlayer.release();
+        }
+        else{
+            Log.d(TAG, "mainactivityonondestry mediaisplaynull");//// TODO: 6/2/2016 sil test icin
+        }
+
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d(TAG, "mainactivityonstop");
+        super.onStop();
+
+        if(mMediaPlayer!=null ) {
+            Log.d(TAG, "mainactivityonstop mediaisplay not null");
+            mMediaPlayer.stop();
+          //  mMediaPlayer.release();
+        }
+        else{
+            Log.d(TAG, "mainactivityonstop mediaisplayisplaying"+mMediaPlayer.isPlaying());//// TODO: 6/2/2016 sil test icin
+        }
+    }
+
+    @Override
+    protected void onRestart() {//// TODO: 5/31/2016 dogru mu emin degili
+        Log.d(TAG, "mainactivityonrestart");
+        super.onRestart();
+
+
+    }
 
     @Override
     public void onResume() {
         Log.d(TAG,"mainonresume*****************");
-
         super.onResume();
+
+        mMediaPlayer = MediaPlayer.create(this, R.raw.sound_mainactivity);
+        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mMediaPlayer.setLooping(true);
+        mMediaPlayer.start();//.release();// STOPSHIP: 6/2/2016
+
         DatabaseHandler dbHandler =  new DatabaseHandler(MainActivity.this);
+        trainingList = dbHandler.getAllTraining(username);//todo getalltraning yerine kontrol yeni alanlari alsa mi
+        trainingHalfList = dbHandler.getHalfTraining(username);//2 kere cagiriyoruz bu 2sini hem burda hem showtrainnigguide cunku gui cagriliyor getalldansonrafilan
 
         //dbHandler.deleteAllTrainingResponses();//// TODO: 5/22/2016 gecici sil
         //dbHandler.getAllTrainingResponse();
         //showTrainingsUI();
         //// TODO: 5/25/2016 toast mesjlar koy
 
-        if (!dbHandler.ifDatabaseExists()) {
+        if (!wasDbExisted) {
             Log.d(TAG, "mainonresume dbhandler dbexists false,getalldb will vbeexecuted");
             if ( CheckNetwork.isOnline(this)) {
                 if(!getAllDBAsyncExecuted) {
@@ -132,7 +193,7 @@ public class MainActivity extends AppCompatActivity  {
             } else {
                 Log.d(TAG, "mainonresume dbhandler dbexists false,getalldb will vbeexecuted async true");
 
-                CheckNetwork.showNoConnectionDialog(this,true);
+                CheckNetwork.showNoConnectionDialog(this,true, 1);
                 //no need  showTrainingsUI(); because no db
             }
         }
@@ -156,7 +217,7 @@ public class MainActivity extends AppCompatActivity  {
                             Log.d(TAG, "mainonresume dbhandler dbexists true, size>0 inside for executingfor traid getAllDBAsyncExecuted false");
                             //her seferinde bir tane yollasin diye, birden fazla olmasin diye.
                             createTrainingResponseAsyncExecuted = true;
-                        new CreateTrainingResponse(MainActivity.this, true).execute(unsendResponseTrainingIDs.get(i));
+                        new CreateTrainingResponse(MainActivity.this, true, username).execute(unsendResponseTrainingIDs.get(i));
                         }//// TODO: 5/25/2016 ayni anda calissin diye bir sey var asynctasklar ama yapmiyorum.sirayla calisacaklar. zaten 2 tanesi cakisabiliyor
                     }//for end
                 }
@@ -165,7 +226,7 @@ public class MainActivity extends AppCompatActivity  {
                 }
                 //  if(){
                 // }
-                if(!createTrainingResponseAsyncExecuted) {//öbürü yapilmamissa yap
+                if(!createTrainingResponseAsyncExecuted) {//öbürü yapilmamissa yap.ayni anda olmasşn dşye
                     if(!checkDBUpdateAsyncExecuted) {
                         checkDBUpdateAsyncExecuted = true;
                         new CheckDatabaseUpdate(MainActivity.this).execute(username, dbHandler.getLastTrainingSetUpdate());
@@ -175,10 +236,11 @@ public class MainActivity extends AppCompatActivity  {
             else {
                 if(trainingList.size()==0&&trainingHalfList.size()==0){//hic ttraining yok o yüzdwen zorunlu check yapilmali
                     Log.d(TAG,"mainonresume trainings size: "+trainingList.size()+" "+trainingHalfList.size());
-                    CheckNetwork.showNoConnectionDialog(this,true);
+                    CheckNetwork.showNoConnectionDialog(this,true, 4);//// TODO: 5/29/2016 hic trainingi yoksa yazi yazilmali ekran
                 }
                 else{
-                    CheckNetwork.showNoConnectionDialog(this,false);
+                    Log.d(TAG,"mainonresume trainings size: "+trainingList.size()+" "+trainingHalfList.size());
+                    CheckNetwork.showNoConnectionDialog(this,false, 5);
                 }
 
                 Log.d(TAG, "mainonresume dbexist, no wifi,need new updates check");
@@ -188,10 +250,15 @@ public class MainActivity extends AppCompatActivity  {
         Log.d(TAG,"mainonresume end******************");
     }
     TrainingResponse tr;
+    //// TODO: 6/1/2016 database tam alindi mi kontrolu yapilabilir.getalldatabase yaparken, kapanırsa mesela yarıda kalir ama dbexists,
+    // oldugu icin dogru gozukur
+
+    //// TODO: 6/1/2016 silme yok hic
+
 //// TODO: 25.04.2016 username name n si buyut 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG,"main oncreate");
+        Log.d(TAG,"MAINACTIVITY oncreate");
 //// TODO: database baglanacak 3 tablo icin cekecek verileri yeni olmayanlari.degistirme yok simdilik.jsonArray dönüştürücü de lazım. internet var mı diye sormali
         //sqlite database baglanip tarihe gore sıralayip onla karsılastricak. inner yerine baska class daha iyi. aysntask icin
         //önce createtimea bakacak yeni eklenen var mi diye.
@@ -205,18 +272,21 @@ public class MainActivity extends AppCompatActivity  {
        // }
 
 //// TODO: 25.04.2016 lastupdate alinmasi lazim SQLitedan. güncellemek için
-     //   username = getIntent().getExtras().getString("username");
+        username = getIntent().getExtras().getString("username");
+        wasDbExisted = getIntent().getExtras().getBoolean("wasDbExisted");
 
         //sqlitedakiler guncel mi diye bakacak
        // new CheckDatabaseUpdate(MainActivity.this, lastUpdate).execute(username);
         //// TODO: 28.04.2016 once database bosmu var mi kontrolu olmali. ilk kez mi aciyor
-        Log.d(TAG, "main activity OnCreate*************");
+        Log.d(TAG, "MAINACTIVITY OnCreate*************");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //ll = (LinearLayout) findViewById(R.id.linearlayoutleft);
         // sv = (ScrollView) findViewById(R.id.scrollviewleft);
      //   new GetAllDatabase(MainActivity.this,ll).execute(username);
 //// TODO: 5/15/2016 sil linearlayout yollamayi ve üsttek slash
+
+        mMediaPlayer = new MediaPlayer();
 
         textMain = (TextView) findViewById(R.id.text_main);
        textHalfCompletedGames = (TextView) findViewById(R.id.text_half_completed_trainings);
@@ -230,13 +300,136 @@ public class MainActivity extends AppCompatActivity  {
         rdioGrpUncompleted = new RadioGroup(this);
         rdioGrpHalfCompleted = new RadioGroup(this);
 
-dbHandler.getAllTrainingResponse();//// TODO: 5/25/2016 sil
-dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
-   dbHandler.getAllObjectObject();     //// TODO: 5/25/2016 sil
-        dbHandler.getAllTrainingObject();     //// TODO: 5/25/2016 sil
+//dbHandler.getAllTrainingResponse();//// TODO: 5/25/2016 sil
+//dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
+ //  dbHandler.getAllObjectObject();     //// TODO: 5/25/2016 sil
+       // dbHandler.getAllTrainingObject();     //// TODO: 5/25/2016 sil
       // Log.d(TAG,"LEVEL:"+ dbHandler.getCurrentLevel(86));
 
         textMain.setText("Hoşgeldin " + username);
+
+
+        backgroundImg = new ImageView(this);
+        backgroundImg  = (ImageView) findViewById(R.id.background_img);
+
+      //  GlideDrawableImageViewTarget ivTarget = new GlideDrawableImageViewTarget(ivImg);
+        Glide.with(this)
+                .load(R.raw.gif_mainactivity) // The image you want to load
+                .crossFade()
+                .placeholder(R.drawable.img_mainactivity_background_placeholderimg) // The placeholder GIF.
+                .into(backgroundImg);
+
+        settingsMenuPopup = new ImageView(this);
+        settingsMenuPopup = (ImageView) findViewById(R.id.settings_imgbtn);
+
+
+        settingsMenuPopup.setOnClickListener(new View.OnClickListener() {
+
+
+            @Override
+            public void onClick(View v) {
+
+                popup = new PopupMenu(MainActivity.this, settingsMenuPopup);
+
+                //Inflating the Popup using xml file
+                popup.getMenuInflater()
+                        .inflate(R.menu.popupmenu_main, popup.getMenu());
+
+                //ikonlar gözüksün diye
+                try {
+                    Field[] fields = popup.getClass().getDeclaredFields();
+                    for (Field field : fields) {
+                        if ("mPopup".equals(field.getName())) {
+                            field.setAccessible(true);
+                            Object menuPopupHelper = field.get(popup);
+                            Class<?> classPopupHelper = Class.forName(menuPopupHelper
+                                    .getClass().getName());
+                            Method setForceIcons = classPopupHelper.getMethod(
+                                    "setForceShowIcon", boolean.class);
+                            setForceIcons.invoke(menuPopupHelper, true);
+                            break;
+                        }
+                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+
+                //registering popup with OnMenuItemClickListener
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+                        //Log.d(TAG, "you clciked " + item.getTitle() + " id=" + item.getItemId()+"   item.getGroupId():"+  item.getGroupId());//// TODO: 6/2/2016 sil buralari
+                        Log.d(TAG, "you clciked " + item.getTitle() + " id=" + item.getItemId()+" item:"+item.toString());
+
+                        if(item.getTitle().toString().contains("onuc")){//sonuclarinizi gorunse
+                            Log.d(TAG, "you clciked sonuc gör");
+
+                        }
+                        else
+                        {
+                            Log.d(TAG, "you clciked logout");
+
+
+                            final Context ctx = MainActivity.this;
+                            AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+                            builder.setCancelable(true);
+                            builder.setTitle("Oturumunuzu sonlandirmak istediginize emin misiniz?");
+                            //builder.setMessage("Cikilsin mi?");
+                            builder.setPositiveButton("Oturumu kapat", new DialogInterface.OnClickListener() {
+
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                                    dbHandler.forgetLogin(username);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            });
+                            builder.setNegativeButton("Iptal", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    return;
+                                }
+                            });
+                            builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                public void onCancel(DialogInterface dialog) {
+                                    return;
+                                }
+                            });
+                            builder.show();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        }
+
+                        return true;
+                    }
+                });
+                popup.show(); //showing popup menu
+
+
+            }
+        }); //closing the setOnClickListener method
+
+
+
+
+
+
+
+
+
+
+
 //// TODO: 30.04.2016 once database ayarla sonra layout duzelt
         //imageChoose = (ImageView) findViewById(R.id.img_choose);
        // imageCount = (ImageView) findViewById(R.id.img_count);
@@ -381,11 +574,11 @@ dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
              //   startActivity(intent);
             }
         });*/
-        Log.d(TAG,"main oncreate ends*************");
+        Log.d(TAG,"MAINACTIVITY oncreate ends*************");
     }//end of oncreate
 
     public void showTrainingsUI(){
-        Log.d(TAG,"showtrainingui");
+        Log.d(TAG,"MAINACTIVITY showtrainingui");
 
       /*  tr = new TrainingResponse();
         for(int i=0;i<1;i++){//todo sil geicic
@@ -404,7 +597,7 @@ dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
 
         trainingList = dbHandler.getAllTraining(username);//todo getalltraning yerine kontrol yeni alanlari alsa mi
         trainingHalfList = dbHandler.getHalfTraining(username);
-//        trainingHalfList = dbHandler.getHalfTraining(username);
+
 //dbHandler.getHalfTraining(username);
         // dbHandler.getAllTraining();
 
@@ -413,7 +606,7 @@ dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
 
         //new trainings being taken
         for (int i = 0; i < trainingList.size(); i++) {
-            Log.d(TAG,"main traininglist adding for");
+            Log.d(TAG,"MAINACTIVITY traininglist adding for");
             Training training = trainingList.get(i);
 
             RadioButton radioButton = new RadioButton(this);
@@ -430,7 +623,7 @@ dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
         {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                Log.d(TAG,"main activitythis radio selected: "+checkedId);
+                Log.d(TAG,"MAINACTIVITY activitythis radio selected: "+checkedId);
 
                 Training training = trainingList.get(checkedId);
 
@@ -440,6 +633,7 @@ dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
                     intent.putExtra("level",0);
                     intent.putExtra("username",username);
                     startActivity(intent);
+                    finish();
                 }//// TODO: 5/20/2016 intentleri finish yapmaya öldürmeye gerek var mi geri tusuyal gelisnsin bence
                 else{
                     if(training.getBehaviorID()==1){
@@ -448,6 +642,7 @@ dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
                         intent.putExtra("level",0);
                         intent.putExtra("username",username);
                         startActivity(intent);
+                        finish();
                     }
                     else{
                         Intent intent = new Intent(MainActivity.this, CountingGame.class);
@@ -455,6 +650,7 @@ dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
                         intent.putExtra("level",0);
                         intent.putExtra("username",username);
                         startActivity(intent);
+                        finish();
                     }
                 }
             }//oncheckecchanged end
@@ -478,7 +674,7 @@ dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
         {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                Log.d(TAG,"main activitythis radio selected: "+checkedId);
+                Log.d(TAG,"MAINACTIVITY activitythis radio selected: "+checkedId);
 
                 Training training = trainingHalfList.get(checkedId);
 
@@ -488,6 +684,7 @@ dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
                     intent.putExtra("level",dbHandler.getCurrentLevel(training.getTrainingID()));
                     intent.putExtra("username",username);
                     startActivity(intent);
+                    finish();
                 }
                 else{
                     if(training.getBehaviorID()==1){
@@ -496,6 +693,7 @@ dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
                         intent.putExtra("level",dbHandler.getCurrentLevel(training.getTrainingID()));
                         intent.putExtra("username",username);
                         startActivity(intent);
+                        finish();
                     }
                     else{
                         Intent intent = new Intent(MainActivity.this, CountingGame.class);
@@ -503,12 +701,13 @@ dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
                         intent.putExtra("level",dbHandler.getCurrentLevel(training.getTrainingID()));
                         intent.putExtra("username",username);
                         startActivity(intent);
+                        finish();
                     }
                 }
             }//oncheckecchanged end
         });//listener end
 
-        Log.d(TAG,"showtrainingui end");
+        Log.d(TAG,"MAINACTIVITY showtrainingui end");
     }//showtraining end
 
 

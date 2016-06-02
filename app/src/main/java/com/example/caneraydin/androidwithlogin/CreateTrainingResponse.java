@@ -1,5 +1,6 @@
 package com.example.caneraydin.androidwithlogin;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -29,7 +30,7 @@ public class CreateTrainingResponse extends AsyncTask<Integer, String, String> {
 
     ProgressDialog dialog;
     private Context context;
-    String TAG = "Chic";
+    String TAG = "Chic", username;
 
     JSONObject jsonObj;
     JSONArray jsonArray;
@@ -46,17 +47,19 @@ public class CreateTrainingResponse extends AsyncTask<Integer, String, String> {
     boolean ifAnyErrors = false,//// TODO: 5/22/2016 bunu koydum hata icin, diger yerlere de koymak lazim. bu false ise veritabanini localde güncellesin
 fromMain = false;//mainden geliyorsa maindeki booleani degisterbiliyorum.oyunlardang eliyorsa gerek yok makindeki booleana
 
-    public CreateTrainingResponse(Context context,boolean fromMain) {
+    public CreateTrainingResponse(Context context,boolean fromMain, String username) {
         Log.d(TAG, "CreateTrainingResponse consturct");
         this.context = context;
         this.fromMain = fromMain;
+        this.username = username;
     }
 
     @Override
     protected void onPreExecute() {
         Log.d(TAG, "CreateTrainingResponsee onpre");
         super.onPreExecute();
-        dialog = ProgressDialog.show(context, "Verileriniz sunucuya yükleniyor, lutfen bekleyiniz...", null, true, true);
+        dialog = ProgressDialog.show(context, "Cevaplariniz sunucuya yükleniyor, lutfen bekleyiniz...", null, true, true);
+        dialog.setCancelable(false);
     }
 
 
@@ -85,11 +88,16 @@ fromMain = false;//mainden geliyorsa maindeki booleani degisterbiliyorum.oyunlar
 
             //todo sil
             Log.d(TAG,"i="+i+" response "+trainingResponse.toString());
-
-            String uri = URL+"trainingid="+trainingID+"&studentusername="+trainingResponse.getStudentUserName()+"&objectid="+trainingResponse.getObjectID()
-                    +"&trainingresponsefinishtime="+trainingResponse.getTrainingResponseFinishTime()
-                    +"&trainingresponsescore="+trainingResponse.getTrainingResponseScore();
-          //  Log.d(TAG,"createtrainingresponse url="+uri);
+//http://oep.esy.es/create_training_response.php?trainingid=86&studentusername=t&questionobjectid=7
+// &answerobjectid=5&trainingresponsescore=6&trainingresponsefinishtime=555
+            String uri = URL+"trainingid="+trainingID
+                    +"&studentusername="+trainingResponse.getStudentUserName()
+                    +"&questionobjectid="+trainingResponse.getQuestionObjectID()+
+                    "&answerobjectid="+trainingResponse.getAnswerObjectID()
+                    +"&answertwoobjectid="+trainingResponse.getAnswerTwoObjectID()
+                    +"&trainingresponsescore="+trainingResponse.getTrainingResponseScore()+
+                    "&trainingresponsefinishtime="+trainingResponse.getTrainingResponseFinishTime();
+            Log.d(TAG,"createtrainingresponse url="+uri);
 
             try {
                 BufferedReader bufferedReader = null;
@@ -127,7 +135,7 @@ fromMain = false;//mainden geliyorsa maindeki booleani degisterbiliyorum.oyunlar
         // dismiss the dialog once done
 
         Log.d(TAG, "createtrainingresponse postexecute");
-
+//burda dondurulen json kontrolu lazim yollaabilmis mi diye.eger yollanmissa yapmasi lazim.
         //mark all responses sent
         if(!ifAnyErrors) {
             Log.d(TAG, "createtrainingresponse postexecute ifanyerrors false");
@@ -135,14 +143,33 @@ fromMain = false;//mainden geliyorsa maindeki booleani degisterbiliyorum.oyunlar
         }
         else{
             Log.d(TAG, "createtrainingresponse postexecute ifanyerrors true");
+            //// TODO: 6/1/2016 hata var,toast mı yapsak
         }
-//// TODO: 5/20/2016 maine gitme belki 
-        dialog.dismiss();
+//// yapıldı T ODO: 5/20/2016 maine gitme belki
+
+        try {
+            if ((this.dialog != null) && this.dialog.isShowing()) {Log.d(TAG, "dialog if");
+                this.dialog.dismiss();
+            }else{Log.d(TAG, "dialog ifelse");}
+        } catch (final IllegalArgumentException e) {Log.d(TAG, "dialog illegal");
+            // Handle or log or ignore
+        } catch (final Exception e) {Log.d(TAG, "dialog excepf");
+            // Handle or log or ignore
+        } finally {
+            this.dialog = null;
+        }
 
         if(fromMain) {
             MainActivity mainActivity = (MainActivity) context;
             mainActivity.setCreateTrainingResponseAsyncExecuted(false);
         }
+else {
+            Intent intent = new Intent(context, MainActivity.class);
+            intent.putExtra("username", username);
+            context.startActivity(intent);
+            ((Activity) context).finish();
+        }
+
         Log.d(TAG, "createtrainingresponse ends************");
     }//postexecuteend
 }//class end

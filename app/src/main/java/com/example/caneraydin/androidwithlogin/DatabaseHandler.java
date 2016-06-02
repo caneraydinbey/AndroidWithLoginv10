@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.example.caneraydin.androidwithlogin.domains.Color;
+import com.example.caneraydin.androidwithlogin.domains.Login;
 import com.example.caneraydin.androidwithlogin.domains.ObjectObject;
 import com.example.caneraydin.androidwithlogin.domains.Shape;
 import com.example.caneraydin.androidwithlogin.domains.Training;
@@ -25,7 +26,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     //// TODO: 30.04.2016 basharfleri kucult
     // All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 105;
+    private static final int DATABASE_VERSION = 239;
     private String TAG = "Chic";
 
     // Database Name
@@ -38,6 +39,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String TABLE_TRAINING_RESPONSE = "trainingresponse";
     private static final String TABLE_COLOR = "color";
     private static final String TABLE_SHAPE = "shape";
+    private static final String TABLE_LOGIN = "login";
 
     // object Table column names
     private static final String KEY_COLOR_ID = "colorid";
@@ -71,6 +73,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final String KEY_TRAINING_TOTAL_QUESTION = "trainingtotalquestion";
     private static final String KEY_TRAINING_OK = "trainingok";
     private static final String KEY_TRAINING_CREATE_TIME = "trainingcreatetime";
+    private static final String KEY_TRAINING_NAME_READ ="trainingNameRead";
+    private static final String KEY_TRAINING_SHAPE_READ ="trainingShapeRead";
+    private static final String KEY_TRAINING_COLOR_READ ="trainingColorRead";
+    private static final String KEY_TRAINING_COUNT_READ ="trainingCountRead";
 
     // trainingset Table column names
     private static final String KEY_ID = "id";
@@ -82,13 +88,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // trainingresponse Table column names
     private static final String KEY_TRAINING_RESPONSE_ID = "trainingResponseid";
     //  private static final String KEY_TRAINING_ID = "";
-     private static final String KEY_STUDENT_USERNAME = "studentUserName";
-    //private static final String KEY_OBJ = "";
+    private static final String KEY_STUDENT_USERNAME = "studentUserName";
+    private static final String KEY_ANSWER_OBJECT_ID = "answerObjectID";
+    private static final String KEY_ANSWER_TWO_OBJECT_ID = "answerTwoObjectID";
+    private static final String KEY_QUESTION_OBJECT_ID = "questionObjectID";
     private static final String KEY_TRAINING_RESPONSE_FINISH_TIME = "trainingResponseFinishTime";
     private static final String KEY_TRAINING_RESPONSE_SCORE = "trainingResponseScore";
     private static final String KEY_TRAINING_STARTED = "trainingStarted";
     private static final String KEY_TRAINING_COMPLETED = "trainingComleted";
     private static final String KEY_RESPONSE_SENT = "responseSent";
+
+    //login table column names
+    private static final String KEY_LOGIN_NAME = "loginname";
+    private static final String KEY_LOGIN_PASSWORD = "loginpassword";
+    private static final String KEY_LOGIN_REMEMBER = "loginremember";
 
     // color Table column names
     // private static final String KEY_COLOR_ID = "colorID";
@@ -139,7 +152,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String CREATE_TRAINING_TABLE = "CREATE TABLE " + TABLE_TRAINING + "("
                 + KEY_TRAINING_ID + " INTEGER PRIMARY KEY," + KEY_TRAINING_EVALUATION + " INTEGER,"
                 + KEY_TRAINING_AIM + " TEXT," + KEY_TRAINING_HOOD + " TEXT," + KEY_TRAINING_EXPLANATION + " TEXT," + KEY_BEHAVIOR_ID + " INTEGER,"
-                + KEY_TRAINING_TOTAL_QUESTION + " INTEGER," + KEY_TRAINING_OK + " INTEGER," + KEY_TRAINING_CREATE_TIME + " TEXT" + ")";
+                + KEY_TRAINING_TOTAL_QUESTION + " INTEGER," + KEY_TRAINING_OK + " INTEGER," + KEY_TRAINING_CREATE_TIME + " TEXT," +KEY_TRAINING_NAME_READ
+                +" INTEGER,"+ KEY_TRAINING_SHAPE_READ+" INTEGER,"+     KEY_TRAINING_COLOR_READ+" INTEGER,"+        KEY_TRAINING_COUNT_READ+" INTEGER"+")";
 
         db.execSQL(CREATE_TRAINING_TABLE);
 
@@ -153,8 +167,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         //trainingresponsetable
         String CREATE_TRAINING_RESPONSE_TABLE = "CREATE TABLE " + TABLE_TRAINING_RESPONSE + "("
                 + KEY_TRAINING_RESPONSE_ID + " INTEGER PRIMARY KEY," + KEY_TRAINING_ID + " INTEGER,"
-                + KEY_STUDENT_USERNAME + " STRING," + KEY_OBJECT_ID + " INTEGER," + KEY_TRAINING_RESPONSE_FINISH_TIME + " STRING,"
-                + KEY_TRAINING_RESPONSE_SCORE + " INTEGER," + KEY_TRAINING_STARTED + " INTEGER," + KEY_TRAINING_COMPLETED + " INTEGER," + KEY_RESPONSE_SENT + " INTEGER"
+                + KEY_STUDENT_USERNAME + " STRING," + KEY_QUESTION_OBJECT_ID + " INTEGER," + KEY_ANSWER_OBJECT_ID+" INTEGER,"+KEY_ANSWER_TWO_OBJECT_ID+" INTEGER,"+
+                 KEY_TRAINING_RESPONSE_SCORE + " INTEGER," +
+                KEY_TRAINING_RESPONSE_FINISH_TIME + " STRING,"+  KEY_RESPONSE_SENT + " INTEGER,"
+                + KEY_TRAINING_STARTED + " INTEGER," + KEY_TRAINING_COMPLETED + " INTEGER"
                 + ")";
 
         db.execSQL(CREATE_TRAINING_RESPONSE_TABLE);
@@ -173,6 +189,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         db.execSQL(CREATE_SHAPE_TABLE);
 
+        //logintable
+        String CREATE_LOGIN_TABLE = "CREATE TABLE " + TABLE_LOGIN + "("
+                + KEY_LOGIN_NAME + " STRING PRIMARY KEY,"
+                + KEY_LOGIN_PASSWORD + " STRING,"
+                + KEY_LOGIN_REMEMBER+" INTEGER"
+                + ")";
+
+        db.execSQL(CREATE_LOGIN_TABLE);
+
     }//on create end
 
     // Upgrading database
@@ -188,6 +213,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRAINING_RESPONSE);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_COLOR);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SHAPE);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_LOGIN);
 
         // Create tables again
         onCreate(db);
@@ -228,6 +254,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_TRAINING_HOOD, training.getTrainingHood());
         values.put(KEY_TRAINING_CREATE_TIME, training.getTrainingCreateTime());
         values.put(KEY_TRAINING_OK, training.getTrainingOK());
+        values.put(KEY_TRAINING_NAME_READ, training.getTrainingNameRead());
+        values.put(KEY_TRAINING_SHAPE_READ, training.getTrainingShapeRead());
+        values.put(KEY_TRAINING_COLOR_READ, training.getTrainingColorRead());
+        values.put(KEY_TRAINING_COUNT_READ, training.getTrainingCountRead());
 
         // Inserting Row
         db.insert(TABLE_TRAINING, null, values);
@@ -283,12 +313,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
        // values.put(KEY_TRAINING_RESPONSE_ID, trainingResponse.getTrainingResponseID());
         values.put(KEY_TRAINING_ID, trainingResponse.getTrainingID());
         values.put(KEY_STUDENT_USERNAME, trainingResponse.getStudentUserName());
-        values.put(KEY_OBJECT_ID, trainingResponse.getObjectID());
+        values.put(KEY_QUESTION_OBJECT_ID, trainingResponse.getQuestionObjectID());
         values.put(KEY_TRAINING_RESPONSE_FINISH_TIME, trainingResponse.getTrainingResponseFinishTime());
         values.put(KEY_TRAINING_RESPONSE_SCORE, trainingResponse.getTrainingResponseScore());
         values.put(KEY_TRAINING_STARTED, trainingResponse.getTrainingStarted());
         values.put(KEY_TRAINING_COMPLETED, trainingResponse.getTrainingCompleted());
         values.put(KEY_RESPONSE_SENT, trainingResponse.getResponseSent());
+        values.put(KEY_ANSWER_OBJECT_ID, trainingResponse.getAnswerObjectID());
+        values.put(KEY_ANSWER_TWO_OBJECT_ID, trainingResponse.getAnswerTwoObjectID());
 
         // Inserting Row
         db.insert(TABLE_TRAINING_RESPONSE, null, values);
@@ -323,6 +355,24 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close(); // Closing database connection
     }
 
+    //adding new login
+    public void addLogin(Login login) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        login.toString();//// TODO: 6/2/2016 geçici sil
+        ContentValues values = new ContentValues();
+
+        values.put(KEY_LOGIN_NAME, login.getLoginName());
+        values.put(KEY_LOGIN_PASSWORD, login.getLoginPassword());
+        values.put(KEY_LOGIN_REMEMBER, login.getLoginRemember());
+
+        // Inserting Row
+        db.insert(TABLE_LOGIN, null, values);
+
+        getAllLogin();//// TODO: 6/2/2016 gecisi cil
+
+        db.close(); // Closing database connection
+    }
+
     /***************************************************************************************************/
 
     // Getting All ObjectObjects
@@ -350,7 +400,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding object to list
                 objectList.add(object);
-                  Log.d(TAG,object.toString());//gecici bu//// TODO: 5/27/2016 sil 
+                //  Log.d(TAG,object.toString());//gecici bu//// TODO: 5/27/2016 sil
             } while (cursor.moveToNext());
         }
 
@@ -401,7 +451,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String selectQuery = "SELECT *  FROM "+TABLE_TRAINING+" WHERE "+KEY_TRAINING_ID+" NOT IN("+
 
                 "SELECT "+KEY_TRAINING_ID+"  FROM " + TABLE_TRAINING_RESPONSE +" WHERE "+ KEY_STUDENT_USERNAME+"='"+username+"' AND "+
-                KEY_TRAINING_STARTED+"=1);";//+" AND "+KEY_TRAINING_COMPLETED+"=0);";//// TODO: 5/17/2016 distinct olmali mi
+                KEY_TRAINING_STARTED+"=1);";//+" AND "+KEY_TRAINING_COMPLETED+"=0);";//// TODO: 5/17/2016 distinct olmali mi.atanabilir mi ayni idli
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -534,17 +584,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 trainingResponse.setTrainingResponseID(Integer.parseInt(cursor.getString(0)));
                 trainingResponse.setTrainingID(Integer.parseInt(cursor.getString(1)));
                 trainingResponse.setStudentUserName(cursor.getString(2));
-                trainingResponse.setObjectID(Integer.parseInt(cursor.getString(3)));
-                trainingResponse.setTrainingResponseFinishTime((cursor.getString(4)));
+                trainingResponse.setQuestionObjectID(Integer.parseInt(cursor.getString(3)));
+                trainingResponse.setAnswerObjectID(Integer.parseInt(cursor.getString(4)));
               //  if(!(cursor.getString(5).equals(null))){
                 trainingResponse.setTrainingResponseScore(Integer.parseInt(cursor.getString(5)));//}else Log.d(TAG,"null");
-                trainingResponse.setTrainingStarted(Integer.parseInt(cursor.getString(6)));
-                trainingResponse.setTrainingCompleted(Integer.parseInt(cursor.getString(7)));
-                trainingResponse.setResponseSent(Integer.parseInt(cursor.getString(8)));
+                trainingResponse.setTrainingResponseFinishTime((cursor.getString(6)));
+                trainingResponse.setResponseSent(Integer.parseInt(cursor.getString(7)));
+                trainingResponse.setTrainingStarted(Integer.parseInt(cursor.getString(8)));
+                trainingResponse.setTrainingCompleted(Integer.parseInt(cursor.getString(9)));
+
 
                 // Adding trainingresponse to list
                 trainingResponseList.add(trainingResponse);
-                  Log.d(TAG,trainingResponse.toString());//gecici bua
+                 // Log.d(TAG,trainingResponse.toString());//gecici bua
             } while (cursor.moveToNext());
         }
 
@@ -569,9 +621,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 trainingResponse.setTrainingResponseID(Integer.parseInt(cursor.getString(0)));
                 trainingResponse.setTrainingID(Integer.parseInt(cursor.getString(1)));
                 trainingResponse.setStudentUserName(cursor.getString(2));
-                trainingResponse.setObjectID(Integer.parseInt(cursor.getString(3)));
-                trainingResponse.setTrainingResponseFinishTime((cursor.getString(4)));
-                trainingResponse.setTrainingResponseScore(Integer.parseInt(cursor.getString(5)));
+                trainingResponse.setQuestionObjectID(Integer.parseInt(cursor.getString(3)));
+                trainingResponse.setAnswerObjectID(Integer.parseInt(cursor.getString(4)));
+                //  if(!(cursor.getString(5).equals(null))){
+                trainingResponse.setAnswerTwoObjectID(Integer.parseInt(cursor.getString(5)));
+                trainingResponse.setTrainingResponseScore(Integer.parseInt(cursor.getString(6)));//}else Log.d(TAG,"null");
+                trainingResponse.setTrainingResponseFinishTime((cursor.getString(7)));
+                trainingResponse.setResponseSent(Integer.parseInt(cursor.getString(8)));
+                trainingResponse.setTrainingStarted(Integer.parseInt(cursor.getString(9)));
+                trainingResponse.setTrainingCompleted(Integer.parseInt(cursor.getString(10)));
 //digerlerini almiyor cunku servere atilacak
 
                 // Adding trainingresponse to list
@@ -667,12 +725,40 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding trainingObject to list
                 trainingObjectList.add(trainingObject);
-                   Log.d(TAG,trainingObject.toString());//gecici bu//// TODO: 5/27/2016 sil 
+                 //  Log.d(TAG,trainingObject.toString());//gecici bu//// TODO: 5/27/2016 sil
             } while (cursor.moveToNext());
         }
 
         // return trainingObject list
         return trainingObjectList;
+    }
+
+    // Getting All TrainingObjectsfor trainingid
+    public List<Login> getAllLogin() {
+        List<Login> loginList = new ArrayList<Login>();
+
+        // Select All Query
+        String selectQuery = "SELECT  * FROM " + TABLE_LOGIN ;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                Login login = new Login();
+
+                login.setLoginName((cursor.getString(0)));
+                login.setLoginPassword((cursor.getString(1)));
+                login.setLoginRemember(Integer.parseInt(cursor.getString(2)));
+
+                // Adding trainingObject to list
+                loginList.add(login);
+                 Log.d(TAG,login.toString());//gecici bu//// TODO: 5/27/2016 sil
+            } while (cursor.moveToNext());
+        }
+
+        // return trainingObject list
+        return loginList;
     }
 
     /*****************************************************************************************************/
@@ -776,7 +862,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 new String[]{String.valueOf(object.getObjectID())});
     }
 
-    // Updating single training
+    //traininge eklendigi icin bunlara da eklenmesi lazim
+ /*   // Updating single training
     public int updateTraining(Training training) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -795,7 +882,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // updating row
         return db.update(TABLE_TRAINING, values, KEY_TRAINING_ID + " = ?",
                 new String[]{String.valueOf(training.getTrainingID())});
-    }
+    }*/
 
     // Updating single trainingobject
     public int updateTrainingObject(TrainingObject trainingObject) {
@@ -836,7 +923,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 new String[]{String.valueOf(trainingSet.getId())});
     }
 
-    // Updating single trainingresponse
+/*    // Updating single trainingresponse
     public int updateTrainingResponse(TrainingResponse trainingResponse) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -855,7 +942,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // updating row
         return db.update(TABLE_TRAINING_SET, values, KEY_ID + " = ?",
                 new String[]{String.valueOf(trainingResponse.getTrainingResponseID())});
-    }
+    }*/
 
     // Updating single color
     public int updateColor(Color color) {
@@ -884,7 +971,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return db.update(TABLE_SHAPE, values, KEY_ID + " = ?",
                 new String[]{String.valueOf(shape.getShapeID())});
     }
-//// TODO: 01.05.2016 close db yap 
+//// TODO: 01.05.2016 close db yap hepsindc
 
     /***************************************************************************************************/
 
@@ -954,7 +1041,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding object to list
                 objectList.add(object);
-                    Log.d(TAG,object.toString());//gecici bu//// TODO: 5/27/2016 sil 
+                    //Log.d(TAG,object.toString());//gecici bu//// TODO: 5/27/2016 sil
             } while (cursor.moveToNext());
         }
 
@@ -964,6 +1051,24 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     /***************************************************************************************************/
+    // Getting object name
+    public String getObjectName(int id) {
+
+        // Select All Query
+        String selectQuery = "SELECT " + KEY_OBJECT_NAME + " FROM " + TABLE_OBJECT + " WHERE " + KEY_OBJECT_ID + " = " + id;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+
+            //  Log.d(TAG,"Color name: "+cursor.getString(0)+" id="+id);
+
+            // return training list
+            return cursor.getString(0);
+        }
+        return "";
+    }
 
     // Getting color name
     public String getColorName(int id) {
@@ -1063,11 +1168,12 @@ public int getCurrentLevel(int trainingID){
     String countQuery = "SELECT " + KEY_TRAINING_RESPONSE_SCORE+" FROM "+TABLE_TRAINING_RESPONSE+" WHERE "+KEY_TRAINING_ID+" = "+trainingID;
     db = this.getReadableDatabase();
     Cursor  cursor = db.rawQuery(countQuery, null);
+    Log.d(TAG,"dbhandlergetlevel : "+cursor.getCount());//todo sill)
     return cursor.getCount();
 }
 
     /***************************************************************************************************/
-    //training completed so set completed 1 for all//todo need to check
+    //training completed so set completed 1 for all//todo need to check - calisiyor gibi
     public void setTrainingCompletedAll(int trainingID){
         Log.d(TAG,"dbhandler settrainingcopmpleted");
         //getAllTrainingResponse();
@@ -1110,7 +1216,7 @@ public int getCurrentLevel(int trainingID){
         List<Integer> unsendResponseTrainingIDs = new ArrayList<>();
 
         String selectQuery =  "SELECT DISTINCT "+KEY_TRAINING_ID+" FROM "+TABLE_TRAINING_RESPONSE+" WHERE "+KEY_TRAINING_STARTED+" = 1 "+"AND "
-                +KEY_TRAINING_COMPLETED+" = 1 AND "+ KEY_RESPONSE_SENT+" = 0";
+                +KEY_TRAINING_COMPLETED+" = 1 AND "+ KEY_RESPONSE_SENT+" = 0";//// TODO: 6/1/2016 distinct olursa getalltrainnig de distinct
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -1126,7 +1232,7 @@ public int getCurrentLevel(int trainingID){
 
         return unsendResponseTrainingIDs;
     }
-
+//// TODO: 5/29/2016 db close ekle hepsine
 /***************************************************************************************************/
 //renk mi şekil mi egiitimi olduğunu görmek için
     public int getTrainingAim(int trainingID){
@@ -1147,7 +1253,7 @@ String aim = null;
             aim = cursor.getString(0);
             Log.d(TAG, "getTrainingAim aim: " + aim);//// TODO: 5/21/2016 sil gecici
             if(aim.contains("enk")){
-                return 1;//// TODO: 5/21/2016 sayma gelince ekle
+                return 1;//// gerek kalmadı T ODO: 5/21/2016 sayma gelince ekle
             }
             else{
                 if(aim.contains("kil")){
@@ -1160,7 +1266,107 @@ String aim = null;
             }
        return -1;
     }
-    
+
+    public int getTrainingNameRead(int trainingID) {
+
+        int read;
+
+        // Select All Query
+        String selectQuery = "SELECT " + KEY_TRAINING_NAME_READ + " FROM " + TABLE_TRAINING + " WHERE " + KEY_TRAINING_ID + " = " + trainingID;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+
+            // Log.d(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
+
+            // return training list
+            read = Integer.parseInt(cursor.getString(0));
+            Log.d(TAG, "getTrainingnameread read: " + read);//// TODO: 5/21/2016 sil gecici
+
+            return read;
+        } else {
+            Log.d(TAG, "getTrainingnameread error");
+            return 0;
+        }
+    }
+
+    public int getTrainingCountRead(int trainingID) {
+
+        int read;
+
+        // Select All Query
+        String selectQuery = "SELECT " + KEY_TRAINING_COUNT_READ + " FROM " + TABLE_TRAINING + " WHERE " + KEY_TRAINING_ID + " = " + trainingID;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+
+            // Log.d(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
+
+            // return training list
+            read = Integer.parseInt(cursor.getString(0));
+            Log.d(TAG, "getTrainingcountread read: " + read);//// TODO: 5/21/2016 sil gecici
+
+            return read;
+        } else {
+            Log.d(TAG, "getTrainingcountread error");
+            return 0;
+        }
+    }
+
+    public int getTrainingShapeRead(int trainingID) {
+
+        int read;
+
+        // Select All Query
+        String selectQuery = "SELECT " + KEY_TRAINING_SHAPE_READ + " FROM " + TABLE_TRAINING + " WHERE " + KEY_TRAINING_ID + " = " + trainingID;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+
+            // Log.d(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
+
+            // return training list
+            read = Integer.parseInt(cursor.getString(0));
+            Log.d(TAG, "getTrainingshaperead read: " + read);//// TODO: 5/21/2016 sil gecici
+
+            return read;
+        } else {
+            Log.d(TAG, "getTrainingshaperead error");
+            return 0;
+        }
+    }
+
+    public int getTrainingColorRead(int trainingID) {
+
+        int read;
+
+        // Select All Query
+        String selectQuery = "SELECT " + KEY_TRAINING_COLOR_READ + " FROM " + TABLE_TRAINING + " WHERE " + KEY_TRAINING_ID + " = " + trainingID;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+
+            // Log.d(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
+
+            // return training list
+            read = Integer.parseInt(cursor.getString(0));
+            Log.d(TAG, "getTrainingcolorread read: " + read);//// TODO: 5/21/2016 sil gecici
+
+            return read;
+        } else {
+            Log.d(TAG, "getTrainingcolorread error");
+            return 0;
+        }
+    }
+
     public void deleteAllTrainingResponses(){//// TODO: 5/22/2016 gecici sil.internet yok ondan böyle yaptim. tekrar alamiyorum
         String selectQuery = "DELETE "+TABLE_TRAINING_RESPONSE+";";
         SQLiteDatabase db = this.getWritableDatabase();
@@ -1197,7 +1403,7 @@ String aim = null;
     }
 
         /***************************************************************************************************/
-//// TODO: 5/25/2016 kullanilmiyor artik ihtiac yok
+//// TODO: 5/25/2016 kullanilmiyor artik ihtiac yok. trainingsete göre alıyorum hepsini
         public String getLastObjectUpdate() {
 
             String LastObjectUpdate = null;
@@ -1228,12 +1434,106 @@ String aim = null;
 
         /***************************************************************************************************/
 
+        //login sifresini cekip oyle kontrol ediyoruz
+public int isLoginSuccessful(Login login) {
+//2= success
+    //1= wrong password
+    //0= no data go online
+
+    Log.d(TAG, "DBHANDLER isloginsuccesful loginname=" + login.getLoginName() + " psw=" + login.getLoginPassword());//// TODO: 6/2/2016 gecici sil
+getAllLogin();//// TODO: 6/2/2016 gecici sil
+
+    String selectQuery = "SELECT " + KEY_LOGIN_PASSWORD + " FROM " + TABLE_LOGIN + " WHERE " + KEY_LOGIN_NAME + "='" + login.getLoginName()+"'";
+
+    SQLiteDatabase db = this.getWritableDatabase();
+    Cursor cursor = db.rawQuery(selectQuery, null);
+
+    if (cursor.moveToFirst()) {//varsa
+
+        Log.d(TAG, "DBHANDLER isloginsuccesful not null");
+
+        if (login.getLoginPassword().equals(cursor.getString(0))) {
+            return 2;
+        }
+        else{
+            Log.d(TAG, "DBHANDLER isloginsuccesful false will return 1 cursorgetpasw=" + cursor.getString(0));//Todo gecicisil burdakileri
+            return 1;
+        }
+
+    }
+    else{
+       // Log.d(TAG, "DBHANDLER isloginsuccesful return 0 cursorgetpasw=" + cursor.getString(0));//Todo gecicisil burdakileri
+        return 0;
+    }
+
+}
+
+public String isLoginRemember(){
+//username döndürüyor ki maine gitsin
+
+    Log.d(TAG, "DBHANDLER is loginremember");
+
+        String selectQuery = "SELECT " + KEY_LOGIN_NAME+","+KEY_LOGIN_PASSWORD + " FROM " + TABLE_LOGIN + " WHERE "+KEY_LOGIN_REMEMBER+"="+1;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {//varsa
+
+          //  Login login = new Login();
+            //bir tane olacagi düsünülüyor loginremember true olanin cünkü cikis yaparsa false olacak.
+
+           // login.setLoginName(String.valueOf(Integer.parseInt(cursor.getString(0))));
+         //   login.setLoginPassword(String.valueOf(Integer.parseInt(cursor.getString(1))));
+          //  login.setLoginRemember(1);
+
+            Log.d(TAG, "DBHANDLER isLoginRememberw=" + cursor.getString(1));//Todo gecicisil burdakileri
+
+            return (cursor.getString(0));
+        }
+
+    return null;
+    }
+
+    public void forgetLogin(String username){
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(KEY_LOGIN_REMEMBER, 0);
+
+        // updating row
+         db.update(TABLE_LOGIN, values, KEY_LOGIN_NAME + " = ?",
+                new String[]{username});
+    }
+    
+    public void rememberLogin(String username){
+
+            SQLiteDatabase db = this.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+
+            values.put(KEY_LOGIN_REMEMBER, 1);
+
+            // updating row
+            db.update(TABLE_LOGIN, values, KEY_LOGIN_NAME + " = ?",
+                    new String[]{username});
+
+        }
+
+
+    /***************************************************************************************************/
 
 
 
-        /***************************************************************************************************/
+    /***************************************************************************************************/
 
 
 
+    /***************************************************************************************************/
+
+
+//// TODO: 6/2/2016 cikis yap lazim bir de
 
 }//class end

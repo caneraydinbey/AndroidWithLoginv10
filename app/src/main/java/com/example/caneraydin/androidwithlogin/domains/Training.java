@@ -14,8 +14,10 @@ public class Training {
     int trainingTotalQuestion;
     int trainingOK;
     String trainingCreateTime;
+    int trainingNameRead, trainingCountRead, trainingShapeRead, trainingColorRead;//hangilerinin okututuculagini gosteriyor
 
-    public Training(int trainingID, int trainingEvaluation, String trainingAim, String trainingHood, String trainingExplanation, int behaviorID, int trainingTotalQuestion, int trainingOK, String trainingCreateTime) {
+    public Training(int trainingID, int trainingEvaluation, String trainingAim, String trainingHood, String trainingExplanation, int behaviorID,
+  int trainingTotalQuestion, int trainingOK, String trainingCreateTime,int trainingNameRead, int trainingCountRead, int  trainingShapeRead, int trainingColorRead) {
         this.trainingID = trainingID;
         this.trainingEvaluation = trainingEvaluation;
         this.trainingAim = trainingAim;
@@ -25,9 +27,45 @@ public class Training {
         this.trainingOK = trainingOK;
         this.trainingCreateTime = trainingCreateTime;
         this.trainingHood = trainingHood;
+        this.trainingNameRead = trainingNameRead;
+        this.trainingShapeRead = trainingShapeRead;
+        this.trainingColorRead = trainingColorRead;
+        this.trainingCountRead = trainingCountRead;
     }
 
     public Training() {
+    }
+
+    public int getTrainingNameRead() {
+        return trainingNameRead;
+    }
+
+    public void setTrainingNameRead(int trainingNameRead) {
+        this.trainingNameRead = trainingNameRead;
+    }
+
+    public int getTrainingShapeRead() {
+        return trainingShapeRead;
+    }
+
+    public void setTrainingShapeRead(int trainingShapeRead) {
+        this.trainingShapeRead = trainingShapeRead;
+    }
+
+    public int getTrainingCountRead() {
+        return trainingCountRead;
+    }
+
+    public void setTrainingCountRead(int trainingCountRead) {
+        this.trainingCountRead = trainingCountRead;
+    }
+
+    public int getTrainingColorRead() {
+        return trainingColorRead;
+    }
+
+    public void setTrainingColorRead(int trainingColorRead) {
+        this.trainingColorRead = trainingColorRead;
     }
 
     public String getTrainingHood() {
@@ -108,11 +146,16 @@ public class Training {
                 "trainingID=" + trainingID +
                 ", trainingEvaluation=" + trainingEvaluation +
                 ", trainingAim='" + trainingAim + '\'' +
+                ", trainingHood='" + trainingHood + '\'' +
                 ", trainingExplanation='" + trainingExplanation + '\'' +
                 ", behaviorID=" + behaviorID +
                 ", trainingTotalQuestion=" + trainingTotalQuestion +
                 ", trainingOK=" + trainingOK +
                 ", trainingCreateTime='" + trainingCreateTime + '\'' +
+                ", trainingNameRead=" + trainingNameRead +
+                ", trainingCountRead=" + trainingCountRead +
+                ", trainingShapeRead=" + trainingShapeRead +
+                ", trainingColorRead=" + trainingColorRead +
                 '}';
     }
 }

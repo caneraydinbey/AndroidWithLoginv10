@@ -22,8 +22,6 @@ import android.content.Context;
         import com.example.caneraydin.androidwithlogin.domains.TrainingObject;
         import com.example.caneraydin.androidwithlogin.domains.TrainingResponse;
         import com.example.caneraydin.androidwithlogin.domains.TrainingSet;
-        import com.squareup.picasso.Picasso;
-        import com.squareup.picasso.Target;
 
         import org.json.JSONArray;
 import org.json.JSONException;
@@ -86,6 +84,10 @@ public class GetAllDatabase extends AsyncTask<String,Void,String> {
     private static final String KEY_TRAINING_TOTAL_QUESTION = "trainingTotalQuestion";
     private static final String KEY_TRAINING_OK = "trainingOK";
     private static final String KEY_TRAINING_CREATE_TIME = "trainingCreateTime";
+    private static final String KEY_TRAINING_NAME_READ ="trainingNameRead";
+    private static final String KEY_TRAINING_SHAPE_READ ="trainingShapeRead";
+    private static final String KEY_TRAINING_COLOR_READ ="trainingColorRead";
+    private static final String KEY_TRAINING_COUNT_READ ="trainingCountRead";
 
     // trainingset Table column names
     private static final String KEY_ID = "id";
@@ -113,6 +115,7 @@ public class GetAllDatabase extends AsyncTask<String,Void,String> {
         Log.d(TAG, "getalldatabase onpre");
         super.onPreExecute();
         dialog = ProgressDialog.show(context, "Veriler olusturuluyor, lutfen bekleyiniz...", null, true, true);
+        dialog.setCancelable(false);
     }
 
     @Override
@@ -175,7 +178,7 @@ public class GetAllDatabase extends AsyncTask<String,Void,String> {
             Log.d(TAG, "GetAllDatabase nullpointer exception1: "+ex);
         }
 
-/// TODO: 28.04.2016 bu kontrol yerine success 1 mi 0 mi ile yap jsonArray verisi kullanarak.burda successlere bakilacak tek tek
+/// yapıldı T ODO: 28.04.2016 bu kontrol yerine success 1 mi 0 mi ile yap jsonArray verisi kullanarak.burda successlere bakilacak tek tek
       //  if(!sb.equals("nonewtrainings")) {
            // Log.d(TAG, "getalldatabase sb newtrainings: " + sb);
             //   Toast.makeText(context, "New trainings were added, they need to be added to local database..", Toast.LENGTH_LONG).show();
@@ -218,12 +221,12 @@ public class GetAllDatabase extends AsyncTask<String,Void,String> {
         Log.d(TAG, "******");
         // if(result.equals("newtrainings")){
      //   Log.d(TAG, "getalldatabase onpostexe result newtrainings: ");
-        int maxLogSize = 1000;
+        int maxLogSize = 100;
         for(int i = 0; i <= result.length() / maxLogSize; i++) {
             int start = i * maxLogSize;
             int end = (i+1) * maxLogSize;
             end = end > result.length() ? result.length() : end;
-        //    Log.v(TAG, result.substring(start, end));
+          // Log.v(TAG, result.substring(start, end));
         }
 
         Log.d(TAG, "******");
@@ -232,13 +235,12 @@ public class GetAllDatabase extends AsyncTask<String,Void,String> {
         Log.d(TAG, "******");
 
         try {
-            JSONObject jsonObject = new JSONObject(result);
+            jsonObj = new JSONObject(result);
 
             //var mi diye kontrol yoksa almayacak
-            if(jsonObject.getInt("success_trainingset")!=0){//// TODO: 5/25/2016 burda araya or koyup hepsini tek tek kontrol mü daha iyi olur 
+            if(jsonObj.getInt("success_trainingset")!=0){//// TODO: 5/25/2016 burda araya or koyup hepsini tek tek kontrol mü daha iyi olur
 
-            jsonObj = new JSONObject(result);
-//// TODO: 5/25/2016 iki tane jsona gerek var mi checkdbde de düzelt
+//// yapıldı T ODO: 5/25/2016 iki tane jsona gerek var mi checkdbde de düzelt
 
             /***************************************************************************************************/
 
@@ -281,6 +283,10 @@ public class GetAllDatabase extends AsyncTask<String,Void,String> {
                 training.setTrainingHood(c.getString(KEY_TRAINING_HOOD));
                 training.setTrainingCreateTime(c.getString(KEY_TRAINING_CREATE_TIME));
                 training.setTrainingOK(c.getInt(KEY_TRAINING_OK));
+                training.setTrainingNameRead(c.getInt(KEY_TRAINING_NAME_READ));
+                training.setTrainingShapeRead (c.getInt(KEY_TRAINING_SHAPE_READ));
+                training.setTrainingColorRead (c.getInt(KEY_TRAINING_COLOR_READ));
+                training.setTrainingCountRead (c.getInt(KEY_TRAINING_COUNT_READ));
 
                 //  Log.d(TAG, "GetAllDatabasetrainingset: "+trainingSet.toString());
                 dbHandler.addTraining(training);
@@ -308,18 +314,18 @@ public class GetAllDatabase extends AsyncTask<String,Void,String> {
                 if(!c.getString(KEY_TRAINING_OBJECT_THREE).equals("null")) {
                     trainingObject.setTrainingobjectThree(c.getInt(KEY_TRAINING_OBJECT_THREE));
                 }else{
-                    trainingObject.setTrainingobjectThree(Integer.valueOf("null"));
+                    trainingObject.setTrainingobjectThree(0);
                 }
                 if(!c.getString (KEY_TRAINING_OBJECT_FOUR).equals("null")){
                     trainingObject.setTrainingobjectFour(c.getInt   (KEY_TRAINING_OBJECT_FOUR));
                 }else{
-                    trainingObject.setTrainingobjectThree(Integer.valueOf("null"));
+                    trainingObject.setTrainingobjectFour(0);
                 }
                 if(!c.getString (KEY_TRAINING_OBJECT_FIVE).equals("null")){
                     trainingObject.setTrainingobjectFive(c.getInt   (KEY_TRAINING_OBJECT_FIVE));
                 }else{
-                    trainingObject.setTrainingobjectThree(Integer.valueOf("null"));
-                }//// TODO: 5/28/2016 null da koyulabilir buralara
+                    trainingObject.setTrainingobjectFive(0);
+                }//// yapıldı TO DO: 5/28/2016 null da koyulabilir buralara. ya da sıfır. çünkü levelden bakiyor zaten.
 
                 //  Log.d(TAG, "GetAllDatabasetrainingset: "+trainingSet.toString());
                 dbHandler.addTrainingObject(trainingObject);
@@ -411,7 +417,7 @@ public class GetAllDatabase extends AsyncTask<String,Void,String> {
                 dbHandler.getAllTrainingSet();
             }//if end
             else{
-                Log.d(TAG,"success=0");//// TODO: 5/25/2016 toast ile ver hatayi.checjdbde de yap
+                Log.d(TAG,"success=0");//// TODO: 5/25/2016 toast ile ver hatayi.checjdbde de yap.
             }
         }//end of try
         catch (JSONException e) {

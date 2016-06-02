@@ -69,6 +69,10 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
     private static final String KEY_TRAINING_TOTAL_QUESTION = "trainingTotalQuestion";
     private static final String KEY_TRAINING_OK = "trainingOK";
     private static final String KEY_TRAINING_CREATE_TIME = "trainingCreateTime";
+    private static final String KEY_TRAINING_NAME_READ ="trainingNameRead";
+    private static final String KEY_TRAINING_SHAPE_READ ="trainingShapeRead";
+    private static final String KEY_TRAINING_COLOR_READ ="trainingColorRead";
+    private static final String KEY_TRAINING_COUNT_READ ="trainingCountRead";
 
     // trainingset Table column names
     private static final String KEY_ID = "id";
@@ -93,7 +97,8 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
 
     protected void onPreExecute(){
         Log.d(TAG, "checkdatabaseupdate onpre");
-        dialog = ProgressDialog.show(context, "Checking database for new trainings", null, true, true);
+        dialog = ProgressDialog.show(context, "Yeni egitimler var mi diye kontrol ediliyor, lutfen bekleyiniz...", null, true, true);
+        dialog.setCancelable(false);
     }
 
     @Override
@@ -157,7 +162,7 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
         Log.d(TAG, "******");
 
 
-/// TODO: 28.04.2016 bu kontrol yerine success 1 mi 0 mi ile yap jsonArray verisi kullanarak
+/// yapıldı T ODO: 28.04.2016 bu kontrol yerine success 1 mi 0 mi ile yap jsonArray verisi kullanarak
        // if(!sb.equals("nonewtrainings")) {
           //  Log.d(TAG, "checkdatabaseupdate sb newtrainings: " + sb);
          //   Toast.makeText(context, "New trainings were added, they need to be added to local database..", Toast.LENGTH_LONG).show();
@@ -185,27 +190,25 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
        // if(result.equals("newtrainings")){
             Log.d(TAG, "checkdatabaseupdate onpostexe result newtrainings: "+result);
 
+        TrainingSet trainingSet = new TrainingSet();
+        Training training = new Training();
+        Shape shape = new Shape();
+        Color color = new Color();
+        ObjectObject object = new ObjectObject();
+        TrainingObject trainingObject = new TrainingObject();
+        TrainingResponse trainingResponse = new TrainingResponse();
+        dbHandler = new DatabaseHandler(context);
+
+        JSONObject jsonObj;
+        JSONArray jsonArray;
+        JSONObject c;
+        //// TODO: 6/1/2016 kontrol et degistirdim duzgun mu diye
         try {
-            JSONObject jsonObject = new JSONObject(result);
+            jsonObj  = new JSONObject(result);
 
             //var mi diye kontrol yoksa almayacak
-            if(jsonObject.getInt("success_trainingset")!=0){
+            if( jsonObj.getInt("success_trainingset")!=0){
                 Log.d(TAG,"success_trainingset=1");
-
-                TrainingSet trainingSet = new TrainingSet();
-                Training training = new Training();
-                Shape shape = new Shape();
-                Color color = new Color();
-                ObjectObject object = new ObjectObject();
-                TrainingObject trainingObject = new TrainingObject();
-                TrainingResponse trainingResponse = new TrainingResponse();
-                dbHandler = new DatabaseHandler(context);
-
-                JSONObject jsonObj;
-                JSONArray jsonArray;
-                JSONObject c;
-
-                jsonObj = new JSONObject(result);
 
                 /***************************************************************************************************/
 
@@ -248,6 +251,10 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
                     training.setTrainingHood(c.getString(KEY_TRAINING_HOOD));
                     training.setTrainingCreateTime(c.getString(KEY_TRAINING_CREATE_TIME));
                     training.setTrainingOK(c.getInt(KEY_TRAINING_OK));
+                    training.setTrainingNameRead(c.getInt(KEY_TRAINING_NAME_READ));
+                    training.setTrainingShapeRead (c.getInt(KEY_TRAINING_SHAPE_READ));
+                    training.setTrainingColorRead (c.getInt(KEY_TRAINING_COLOR_READ));
+                    training.setTrainingCountRead (c.getInt(KEY_TRAINING_COUNT_READ));
 
                     //  Log.d(TAG, "GetAllDatabasetrainingset: "+trainingSet.toString());
                     dbHandler.addTraining(training);
@@ -275,18 +282,18 @@ public class CheckDatabaseUpdate extends AsyncTask<String,Void,String> {
                     if(!c.getString(KEY_TRAINING_OBJECT_THREE).equals("null")) {
                         trainingObject.setTrainingobjectThree(c.getInt(KEY_TRAINING_OBJECT_THREE));
                     }else{
-                        trainingObject.setTrainingobjectThree(Integer.valueOf("null"));
+                        trainingObject.setTrainingobjectThree(0);
                     }
                     if(!c.getString (KEY_TRAINING_OBJECT_FOUR).equals("null")){
                         trainingObject.setTrainingobjectFour(c.getInt   (KEY_TRAINING_OBJECT_FOUR));
                     }else{
-                        trainingObject.setTrainingobjectThree(Integer.valueOf("null"));
+                        trainingObject.setTrainingobjectFour(0);
                     }
                     if(!c.getString (KEY_TRAINING_OBJECT_FIVE).equals("null")){
                         trainingObject.setTrainingobjectFive(c.getInt   (KEY_TRAINING_OBJECT_FIVE));
                     }else{
-                        trainingObject.setTrainingobjectThree(Integer.valueOf("null"));
-                    }//// TODO: 5/28/2016 null da koyulabilir buralara. ya da sıfır. çünkü levelden bakiyor zaten.
+                        trainingObject.setTrainingobjectFive(0);
+                    }//// yapıldı T ODO: 5/28/2016 null da koyulabilir buralara. ya da sıfır. çünkü levelden bakiyor zaten.
 
                     //  Log.d(TAG, "GetAllDatabasetrainingset: "+trainingObject.toString());//// TODO: 5/27/2016 sil
                     dbHandler.addTrainingObject(trainingObject);

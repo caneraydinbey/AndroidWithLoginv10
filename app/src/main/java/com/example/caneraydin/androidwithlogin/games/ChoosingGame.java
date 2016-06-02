@@ -1,5 +1,9 @@
 package com.example.caneraydin.androidwithlogin.games;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -7,10 +11,8 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
@@ -39,11 +41,12 @@ import java.util.Locale;
 /**
  * Created by caneraydin on 17.04.2016.
  */
-public class ChoosingGame extends AppCompatActivity implements View.OnClickListener, TextToSpeech.OnInitListener {
+//// TODO: 6/1/2016 leveli aliyoruz zaten artik. yollmasaya gerek yok mainden
+public class ChoosingGame extends Activity implements View.OnClickListener, TextToSpeech.OnInitListener {
 
     String TAG = "Chic";
 
-//// TODO: 5/18/2016 level check
+//// yapıldı T ODO: 5/18/2016 level check
 
     DatabaseHandler dbHandler;
 
@@ -51,10 +54,20 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
     //for demo
     String username, speech,
-            KEY_THIS = "Bu", KEY_AN = " bir";//// TODO: 5/21/2016 merhaba ghosgeldiniz username denebilir belki
+            KEY_THIS = "Bu,",
+            KEY_AN = ", bir ",
+            KEY_BEING = " olan, ",
+            KEY_OBJECT_IS = " nesnesidir ",
+            KEY_OBJECT = " nesnedir ";
+
+    //// TODO: 5/21/2016 merhaba ghosgeldiniz username denebilir belki sesli ya da şarkı
    // KEY_CHOOSE_WHICH_IS = " olani seciniz...";
 
-    String [] KEY_AIM_NAME = {" şeklinde olanı seçiniz", " renginde olanı seçiniz", " sayısında olanı seçiniz"};
+    String [] KEY_READ = {", şekli ", ", rengi ", ", sayısında "};
+
+    String KEY_CHOOSE_WHICH = ", olanı seçiniz.",
+         //   KEY_IN_THE_SCREEN = "Ekrandakilerden ",
+            KEY_CHOOSE_THE_OBJECT_WHICH = ", nesnesini seçiniz.";
 
     List<TrainingObject> trainingObjectList;
 
@@ -66,12 +79,14 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
     Bitmap bmp;
 
-    ImageView imageDemo, //// TODO: 5/20/2016 çünkü burda resme gerek yok answer
-            imageOne,imageTwo,imageThree,imageFour,imageFive;
+    ImageView imageDemo, ////  5/20/2016 çünkü burda resme gerek yok answer.tıklanıyor
+            imageOne,imageTwo,imageThree,imageFour,imageFive,
+    backButtonImg, forwardButtonImg,
+    backGrndImg;
 
     RelativeLayout rLayout;
 
-    ObjectObject objectAnswer,objectResponse;//// TODO: 5/20/2016 ayrı ayrı da olabilirdi ama yapmadım
+    ObjectObject objectAnswer,objectResponse;//// yapıldı T ODO: 5/20/2016 ayrı ayrı da olabilirdi ama yapmadım
 
     TrainingResponse trainingResponse;
 
@@ -81,11 +96,15 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
     boolean isNextLevelToGo = false,//cakisma olmasın diye
             isImageClicked = false,//resme tiklatyinca cakisma olmasin diye
-    isAnimationStarted = false;
+    isAnimationStarted = false,
+   // mPaused = false,
+    isHandlerRunning = false,
+           isThreadRunning = false,
+    isPaused = false; // oninite ttsnin girince bakmasi icin
 
     private Thread thread;
 
-    int POSITIVE_SCORE = 1, NEGATIVE_SCORE = -1, HALF_SCORE = 0, LEVEL_SCORE = 0;
+    int POSITIVE_SCORE = 2, NEGATIVE_SCORE = 0, HALF_SCORE = 1, LEVEL_SCORE = 0;
 
     TrainingObject trainingObject;
 
@@ -96,12 +115,188 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
     int width,height;
 
+    int colorRead, nameRead, countRead, shapeRead;
+
+    Runnable runnable1, runnable2, runnable3;
+
+    Handler handler;
+
+    //// TODO: 5/31/2016 onpauseta masaustunegelmisse mesela stopa geliyor bekliyor geri gelince en bastanbaslatiyor setupdemoyu
+    public void activateProcesses(){
+        Log.d(TAG, "choosing game activateproisthreadrun:"+isThreadRunning+"isPaused "+isPaused);
+
+        colorRead = dbHandler.getTrainingColorRead(trainingID);//// TODO: 6/1/2016 test et buraya koydum dogru mu diye
+        nameRead = dbHandler.getTrainingNameRead(trainingID);
+        shapeRead = dbHandler.getTrainingShapeRead(trainingID);
+        countRead = dbHandler.getTrainingCountRead(trainingID);
+
+        if(isHandlerRunning){
+            Log.d(TAG, "CHOOSINGGAME activatepro ishandlerrunnigisthreadrun:"+isThreadRunning);
+            setupDemo();//bastan basliyr
+        }
+        else {//handler yoksa thread vardir yani setupgame
+            level = dbHandler.getCurrentLevel(trainingID);
+
+/*            if (level != 0){
+                isThreadRunning = true; //yoksa sifirden yarim kalmis oyuna basliyor
+            }*/
+
+                if (isPaused) {//durdurulysa giriyor
+                    Log.d(TAG, "CHOOSINGGAME activateteprolevel=" + level);
+                    counter = level - 1;
+                    Log.d(TAG, "CHOOSINGGAME activate cntr=" + counter + " lvl" + level+" ispaused"+isPaused);
+                    isPaused = false;//
+                    setupForGame();//restart.
+                }
+            Log.d(TAG, "CHOOSINGGAME activate  isthreadrun:"+isThreadRunning);
+        }
+       /* if (thread != null) {//// TODO: 5/29/2016  burda 5 saniye islemiyor sonsuza kadar kaliyor.diger stop resume dogru mu emin degilim
+            synchronized (thread) {
+                mPaused = false;
+                thread.notifyAll();
+                // thread.start();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null, null);
+                }
+                else{
+                    tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
+                }
+            }
+        }*/
+    }
+
+
+    public void terminateProcesses(){
+        Log.d(TAG, "CHOOSINGGAME terminateproisthreadrun:"+isThreadRunning);
+
+        if(tts.isSpeaking()){
+            Log.d(TAG,"CHOOSINGGAME terminatepro tts speak, stoppedisthreadrun:"+isThreadRunning);
+            tts.stop();//handler yok etmiyor bunu, benim durdurmam lazim böyle
+        }
+
+        if(isHandlerRunning){
+            Log.d(TAG,"CHOOSINGGAME terminatepro handlerrunning trueisthreadrun:"+isThreadRunning);
+            handler.removeCallbacksAndMessages(null);
+
+        }
+        else {//setupgamedadir
+            if (isThreadRunning) {
+                Log.d(TAG, "CHOOSINGGAME terminatepro handlerrunning falseisthreadrun:"+isThreadRunning);
+
+                if (isAnimationStarted) {
+                    Log.d(TAG, "CHOOSINGGAME terminatepro animation, stoppedisthreadrun:"+isThreadRunning);
+                    isAnimationStarted = false;
+                    ChoosingGame.this.correctImage[0].clearAnimation();
+                }
+
+                synchronized (
+                        thread) {
+                    Log.d(TAG, "CHOOSINGGAME terminatepro syncisthreadrun:"+isThreadRunning);
+                    thread.interrupt();
+
+                }
+
+            }
+        }
+
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d(TAG, "CHOOSINGGAME onpause***********isthreadrun:"+isThreadRunning);
+        super.onPause();
+        isPaused = true;
+
+        terminateProcesses();
+
+        Log.d(TAG, "CHOOSINGGAME onpause ends***********isthreadrun:"+isThreadRunning);
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "CHOOSINGGAME ondestryisthreadrun:"+isThreadRunning);
+        super.onDestroy();
+        tts.shutdown();
+       // terminateProcesses();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d(TAG, "CHOOSINGGAME onstopisthreadrun:"+isThreadRunning);
+        super.onStop();
+       // terminateProcesses();
+    }
+
+    @Override
+    protected void onResume() {
+        Log.d(TAG, "CHOOSINGGAME onresume isthreadrun:"+isThreadRunning+"isPaused"+isPaused);
+        super.onResume();
+
+        activateProcesses();
+    }
+
+    @Override
+    protected void onRestart() {
+        Log.d(TAG, "CHOOSINGGAME onrestart");//// TODO: 6/1/2016 mainactivitye mi dönse burda . restart ne diye kontrol et arastir.bozulma ani mi
+        super.onRestart();
+
+    /*    level = dbHandler.getCurrentLevel(trainingID)-2;
+        Log.d(TAG, "choosing gameonrestart level="+level);
+
+        if(level == 0) {
+
+            setupDemo();//// TODO: 5/21/2016 hata olursa mne olcak sessiz mi, belki yazili olan yapilabilir
+            //setupForGame();
+        }
+        else{
+            setupForGame();
+        }*/
+    }
+
+    public void onBackPressed() {
+        Log.d(TAG, "CHOOSINGGAME backbuttpn");
+
+        final Context ctx = this;
+        AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+        builder.setCancelable(true);
+        builder.setTitle("Egitiminizi sonlandirmak istediginize emin misiniz?");
+       //builder.setMessage("Cikilsin mi?");
+        builder.setPositiveButton("Egitimden cik", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+            // terminateProcesses();
+                Intent intent = new Intent(ChoosingGame.this, MainActivity.class);
+                intent.putExtra("username", username);
+                startActivity(intent);
+                finish();//// TODO: 6/1/2016 test et finsih mi termiante mi koyuılmalı diye
+            }
+        });
+        builder.setNegativeButton("Egitime devam et", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                return;
+            }
+        });
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            public void onCancel(DialogInterface dialog) {
+                return;
+            }
+        });
+        builder.show();
+
+    }
+
     public void setupDemo(){
 
-        Log.d(TAG,"choosing gamesetupdemo");
+        Log.d(TAG,"CHOOSINGGAME setupdemo************");
+
+        isHandlerRunning = true;
+        isThreadRunning = false;
 
         imageDemo=new ImageView(this);
+        forwardButtonImg = new ImageView(this);
 
+        forwardButtonImg.setBackgroundResource(R.drawable.ic_forward);
+
+        RelativeLayout.LayoutParams rLayParamsDirectiveBtnImg = new RelativeLayout.LayoutParams(height/9,height/9);
 /*
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             tts.speak("Önce nesneleri taniyalim...", TextToSpeech.QUEUE_FLUSH, null, null);
@@ -113,7 +308,17 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
         rLayout= (RelativeLayout) findViewById(R.id.relative_layout);
         rLayout.setBackgroundColor(Color.MAGENTA);
 
+        rLayParamsDirectiveBtnImg.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        rLayParamsDirectiveBtnImg.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+
+        rLayout.addView(forwardButtonImg,rLayParamsDirectiveBtnImg);
+
+        addBackBtnImg();
+
         demoObjectObject = dbHandler.getDemoObjectObject(trainingID);
+
+        //backButtonImg.setOnClickListener(this);
+        forwardButtonImg.setOnClickListener(this);
 
         final RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
@@ -121,112 +326,119 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
         rLayParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
         rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);
 
-      final Handler handler = new Handler();
+        handler = new Handler();
 
-       for ( int i = 0; i<demoObjectObject.size() ; i++) {
-           // Log.d(TAG, "for i="+ i);
+        int i=0;//// TODO: 6/1/2016 i onresume onpauseda durdurulup kaldigi yerden devam edilebilir.
 
-           speech = null;
+       while (  i <demoObjectObject.size() ) {
+           Log.d(TAG,"CHOOSINGGAME setupdemowhile******");
+        //    Log.d(TAG, "i yi arttirmak icin for i="+ i);
+
+           speech = "";
            final int finalI = i;
-           handler.postDelayed(new Runnable() {
 
-                @Override
-                public void run() {
-                    ObjectObject demoObject = new ObjectObject();
-                    demoObject = demoObjectObject.get(finalI);
+           runnable1 = new Runnable() {
+
+               @Override
+               public void run() {
+                   ObjectObject demoObject = new ObjectObject();
+                   demoObject = demoObjectObject.get(finalI);
 
                    // Log.d(TAG,"Bu nesnenin şekli "+dbHandler.getShapeName(demoObject.getShapeID())+
-                           // " rengi ise"+dbHandler.getColorName(demoObject.getColorID())+"id: "+demoObject.getObjectID());
+                   // " rengi ise"+dbHandler.getColorName(demoObject.getColorID())+"id: "+demoObject.getObjectID());
 
-                    speech = KEY_THIS+", "+dbHandler.getColorName(demoObject.getColorID())+" "+KEY_AN+" "+dbHandler.getShapeName(demoObject.getShapeID());
-                    Log.d(TAG,speech);
+                   speech = KEY_THIS;
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null, null);
-                    }
-                    else{
-                        tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
-                    }
+                   if(colorRead == 1){
+                       speech = speech + KEY_READ[1]+ dbHandler.getColorName(demoObject.getColorID());
+                   }
 
-                    imgBytes = demoObject.getObjectImageBlob();
-                    bmp = BitmapFactory.decodeByteArray(imgBytes, 0, imgBytes.length);
+                   if(shapeRead == 1){
+                       speech = speech + KEY_READ[0]+ dbHandler.getShapeName(demoObject.getShapeID());
+                   }
 
-                    imageDemo.setImageBitmap(bmp);
-                    rLayout.removeAllViews();
+                   if(nameRead == 1){
+                       speech = speech + KEY_AN+ dbHandler.getObjectName(demoObject.getObjectID())+KEY_OBJECT_IS;
+                   }
+                   else{
+                       speech = speech + KEY_BEING+ KEY_AN+KEY_OBJECT;
+                   }
+
+                   Log.d(TAG,"CHOOSINGGAME"+speech);
+
+                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                       tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null, null);
+                   }
+                   else{
+                       tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
+                   }
+
+                   imgBytes = demoObject.getObjectImageBlob();
+                   bmp = BitmapFactory.decodeByteArray(imgBytes, 0, imgBytes.length);
+
+                   rLayout.removeView(imageDemo);
+                   imageDemo.setImageBitmap(bmp);
+
                    //// TODO: 5/17/2016 background color degistir ki uyumlu olsun nesne ile karismasin rengi,zittini al
-                    rLayout.addView(imageDemo,rLayParams);
+                   rLayout.addView(imageDemo,rLayParams);
+               }
+           };
 
-                }
-            }, 5000 * i);
-           // Log.d(TAG, "3000i sonrasi");
+           handler.postDelayed(runnable1, 5000 * i);
 
-       /*  Thread  thread=  new Thread(){
-               @Override
-               public void run(){
-                   try {
+           i++;
+           Log.d(TAG,"CHOOSINGGAME setupdemowhile end******");
+                   }//while end
 
-                           Log.d(TAG, " inside thread");
-                           wait(demoObjectObject.size() * 5000);
-                       setupForGame();
-                   }
-                       catch(InterruptedException e){
-                           e.printStackTrace();
-                       }
-                   }
-         };
-           thread.start();*/
-                   }//for end
-
-        handler.postDelayed(new Runnable() {
+        runnable2 = new Runnable() {
 
             @Override
             public void run() {
-                Log.d(TAG,"SECond handler");
+                Log.d(TAG,"CHOOSINGGAME SECond handler");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     tts.speak("Eğitiminiz şimdi başlıyor...", TextToSpeech.QUEUE_FLUSH, null, null);
                 }
-                else{//// TODO: 5/22/2016 bunlari okuyamiyor süre yetmiyor cunku. bir wait lazim sanki
+                else{//// TODO: 5/22/2016 bunlari okuyamiyor süre yetmiyor cunku. bir wait lazim sanki while icinde ya da gerek yok 5 saniyede okur zaten
                     tts.speak("Eğitiminiz şimdi başlıyor...", TextToSpeech.QUEUE_FLUSH, null);
                 }
-               // setupForGame();
+                // setupForGame();
             }
-        }, 5000 * demoObjectObject.size());
+        };
 
-        handler.postDelayed(new Runnable() {
+        handler.postDelayed(runnable2, 5000 * demoObjectObject.size());
+
+        runnable3 = new Runnable() {
 
             @Override
             public void run() {
-                Log.d(TAG, "third handler");
+                Log.d(TAG, "CHOOSINGGAME third handler");
+                isHandlerRunning = false;
                 setupForGame();
             }
-        }, 5000 * demoObjectObject.size()+6000);
+        };
+
+        handler.postDelayed(runnable3, 5000 * demoObjectObject.size()+6000);
 
       //  setupForGame();
-        Log.d(TAG, "setupdemo end");
-    }//setupdemoend
-//// TODO: 5/20/2016 onresume onpause yap yska karısiyior 
-/*    protected void onPause(){
-        super.onPause(); //
-        if(thread.isAlive()){
-            threadPaused = true;
-            try {
-                thread.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        Log.d(TAG, "CHOOSINGGAME setupdemo end************");
+//// TODO: 5/20/2016 onresume onpause yap yska karısiyior
     }
 
-    protected void onResume(){
-        super.onResume();
-        if(threadPause){
-            thread.
-        }
-    }*/
+    public void addBackBtnImg(){//geri tusunu eklemek icin her iterasyoneda lazim
+        RelativeLayout.LayoutParams rLayParamsDirectiveBtnImg = new RelativeLayout.LayoutParams(height/9,height/9);
+
+        rLayParamsDirectiveBtnImg.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        rLayParamsDirectiveBtnImg.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+
+        backButtonImg = new ImageView(this);
+        backButtonImg.setBackgroundResource(R.drawable.ic_back);
+        rLayout.addView(backButtonImg,rLayParamsDirectiveBtnImg);
+        backButtonImg.setOnClickListener(this);
+    }
 
     public void setTwoObjectLayout(){
 
-        Log.d(TAG, "chossing game settwoobjectlayout");
+        Log.d(TAG, "CHOOSINGGAME settwoobjectlayout");
 
         RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
@@ -242,6 +454,7 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
         imageOne.setTag(trainingObject.getTrainingobjectOne());
         imageOne.setId(R.id.imgOne);
         rLayout.removeAllViews();
+        addBackBtnImg();
         rLayout.addView(imageOne,rLayParams);
 
         rLayParams = null;
@@ -274,7 +487,7 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
     public void setFourObjectLayout(){
 
-        Log.d(TAG, "chossing game setfourobjectlayout");
+        Log.d(TAG, "CHOOSINGGAME setfourobjectlayout");
 
         RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
@@ -290,6 +503,7 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
         imageOne.setTag(trainingObject.getTrainingobjectOne());
         imageOne.setId(R.id.imgOne);
         rLayout.removeAllViews();
+        addBackBtnImg();
         rLayout.addView(imageOne,rLayParams);
 
         rLayParams = null;
@@ -351,7 +565,7 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
         rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
-        rLayParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        rLayParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
 
         imgBytes = objectResponse.getObjectImageBlob();
@@ -372,11 +586,16 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
 //// TODO: 5/21/2016 isspeaking stopa gerek yok hepsinde, zaten 5 saniyeden uzun olamaz ki
     void setupForGame(){
-        Log.d(TAG,counter+" setupForGame");
+        Log.d(TAG,"CHOOSINGGAME "+counter+" setupForGame");
+Log.d(TAG,"false olmali ishadlerrun: "+isHandlerRunning);//// TODO: 5/31/2016 sil
+
+        isThreadRunning = true;
+
+        rLayout.removeView(forwardButtonImg);
 
         if(tts.isSpeaking()){
             tts.stop();
-            Log.d(TAG,"tts speak, stopped");
+            Log.d(TAG,"CHOOSINGGAME tts speak, stopped");
         }
 
         if(isAnimationStarted) {
@@ -389,7 +608,7 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
 
         LEVEL_SCORE =0;
 
-        speech = null;
+        speech = "";
 
         counter++;
         //get trainingobjects for trainingid
@@ -405,52 +624,53 @@ public class ChoosingGame extends AppCompatActivity implements View.OnClickListe
         trainingObject = trainingObjectList.get(counter%trainingObjectList.size());//// TODO: 5/22/2016 mod aldım burda çünkü hata veriyor su an icin, ck syida var diye
 
         trainingResponse.setTrainingID(trainingID);
-        trainingResponse.setObjectID(trainingObject.getTrainingobjectID());
+        trainingResponse.setQuestionObjectID(trainingObject.getTrainingobjectID());
         trainingResponse.setTrainingStarted(1);
         trainingResponse.setStudentUserName(username);
         trainingResponse.setTrainingCompleted(0);
         trainingResponse.setResponseSent(0);
+       // trainingResponse.setAnswerObjectID(0);
 
         objectCount = 1+trainingObject.getTrainingobjectLevel() ;
-        Log.d(TAG,"objcount: "+objectCount);
+        Log.d(TAG,"CHOOSINGGAME objcount: "+objectCount);
 
         // Log.d(TAG,"testicin trainingobjectid: "+trainingObject.getTrainingobjectID());
 if(counter==0) {//todo sil
-    for (int i = 0; i < trainingObjectList.size(); i++) {
-        Log.d(TAG, "Bu nesnenin şekli " + dbHandler.getShapeName(trainingObjectList.get(i).getTrainingobjectAnswer()) +
-                " rengi ise" + dbHandler.getColorName(trainingObjectList.get(i).getTrainingobjectAnswer()));
-    }
-}
-        // if(trainingObject.getTrainingobjectThree()!=0) objectCount++;
-        //  if(trainingObject.getTrainingobjectFour()!=0) objectCount++;
-        // if(trainingObject.getTrainingobjectFive()!=0) objectCount++;
-        //Log.d(TAG,"matchinggame objcount: "+objectCount);
+            for (int i = 0; i < trainingObjectList.size(); i++) {
+                ObjectObject o = new ObjectObject();
+                        o = dbHandler.getObjectObject(trainingObjectList.get(i).getTrainingobjectAnswer());
 
-        //those are standarst for each level so defining before switchcase
+                Log.d(TAG, dbHandler.getShapeName(o.getShapeID()) +
+                        " " + dbHandler.getColorName(o.getColorID())+dbHandler.getObjectName(o.getObjectID()));
+            }
+            //dbHandler.getAllObjectObject();
+        }
+        Log.d(TAG, "CHOOSINGGAME traobj: "+  trainingObject.toString());
 
         /*******************************************************************************************/
 
-        objectAnswer = new ObjectObject();//// TODO: 5/20/2016  ses için kullanılacak komutu objectanswer
+        objectAnswer = new ObjectObject();//// yapıldı - T ODO: 5/20/2016  ses için kullanılacak komutu objectanswer
         objectResponse = new ObjectObject();
 
         objectAnswer = dbHandler.getObjectObject(trainingObject.getTrainingobjectAnswer());
         objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectOne());
 
-        switch(dbHandler.getTrainingAim(trainingID)) {
-            case 1:
-                Log.d(TAG,"choosinggame gettraningaim case1 renk");
-                speech = dbHandler.getColorName(objectAnswer.getColorID())+KEY_AIM_NAME[1];
-                Log.d(TAG,speech);
-                break;
-            case 0:
-                Log.d(TAG,"choosinggame gettraningaim case1 sekil");
-                speech = dbHandler.getShapeName(objectAnswer.getShapeID())+KEY_AIM_NAME[0];
-                Log.d(TAG,speech);
-                break;
-            default:
-                Log.d(TAG,"choosinggame gettraningaim case default");
-                break;
+        if(colorRead == 1){
+            speech = speech + KEY_READ[1]+ dbHandler.getColorName(objectAnswer.getColorID());
         }
+
+        if(shapeRead == 1){
+            speech = speech + KEY_READ[0]+ dbHandler.getShapeName(objectAnswer.getShapeID());
+        }
+
+        if(nameRead == 1){
+            speech = speech + dbHandler.getObjectName(objectAnswer.getObjectID())+KEY_CHOOSE_THE_OBJECT_WHICH;
+        }
+        else{
+            speech = speech + KEY_CHOOSE_WHICH;
+        }
+
+        Log.d(TAG,"CHOOSINGGAME "+speech);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null, null);
@@ -459,14 +679,14 @@ if(counter==0) {//todo sil
             tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
         }
 
-Log.d(TAG,dbHandler.getColorName(objectAnswer.getColorID())+" - "+dbHandler.getShapeName(objectAnswer.getShapeID()));
+Log.d(TAG,"CHOOSINGGAME "+dbHandler.getColorName(objectAnswer.getColorID())+" - "+dbHandler.getShapeName(objectAnswer.getShapeID()));
 
         RelativeLayout.LayoutParams rLayParams;
 
         switch (objectCount){
             case 2://2 ve 3te ortak 2 tane var. o yuzden ortaklar. 3te sonra ekleme yapiliyor
 
-                Log.d(TAG,"switchcase 2");
+                Log.d(TAG,"CHOOSINGGAME switchcase 2");
                 //already defined
 
                 setTwoObjectLayout();
@@ -474,7 +694,7 @@ Log.d(TAG,dbHandler.getColorName(objectAnswer.getColorID())+" - "+dbHandler.getS
 
             case 3:
 
-                Log.d(TAG,"switchcase 3");
+                Log.d(TAG,"CHOOSINGGAME switchcase 3");
 
                 setTwoObjectLayout();
 
@@ -507,14 +727,14 @@ Log.d(TAG,dbHandler.getColorName(objectAnswer.getColorID())+" - "+dbHandler.getS
 
             case 4:
 
-                Log.d(TAG,"switchcase 4");
+                Log.d(TAG,"CHOOSINGGAME switchcase 4");
 
                 setFourObjectLayout();
                 break;
 
             default:
 
-                Log.d(TAG,"switchcase default");
+                Log.d(TAG,"CHOOSINGGAME switchcase default");
                 setFourObjectLayout();
 
                 rLayParams = null;
@@ -575,12 +795,12 @@ Log.d(TAG,dbHandler.getColorName(objectAnswer.getColorID())+" - "+dbHandler.getS
             public void run(){
                 try {
                     synchronized(this){
-                        Log.d(TAG,counter+" waiting 5 seconds counter:");
-                        wait(4000);
+                        Log.d(TAG,"CHOOSINGGAME "+counter+" waiting 5 seconds counter:");
+                        wait(6000);//normalde 5 saniye ama ses uzun surdugu icin
 Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.getTag():"+imageOne.getTag()+"imageTwo.getTag()"+imageTwo.getTag());
 
                         wait(1000);
-                        Log.d(TAG,counter+" waiting 5 seconds efekt counter:");
+                        Log.d(TAG,"CHOOSINGGAME "+counter+" waiting 5 seconds efekt counter:");
 
                         runOnUiThread(new Runnable() {
                             @Override
@@ -613,9 +833,10 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
                                     //süre bitti cevaplamadi. negative
                                     currentDate = new Date();
 
-                                    trainingResponse.setTrainingResponseScore(NEGATIVE_SCORE);//// TODO: 5/22/2016 bunu niy yapmisim bilmiyorum
+                                    trainingResponse.setTrainingResponseScore(NEGATIVE_SCORE);
                                     trainingResponse.setTrainingResponseFinishTime(String.valueOf(currentDate.getTime() / 1000));
                                     dbHandler.addTrainingResponse(trainingResponse);
+                                    Log.d(TAG,"CHOOSINGGAME trarespo "+  trainingResponse.toString());//// TODO: 5/29/2016 geçicisil
                                //     Log.d(TAG,counter-1+" run ui level  counter:");
                                     if(counter+1<trainingObjectList.size()) {
                                         setupForGame();
@@ -623,22 +844,26 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
                                     else{//bitir activity. main activitiye dönülebilir belki.
                                         dbHandler.setTrainingCompletedAll(trainingID);
                                         if (!CheckNetwork.isOnline(ChoosingGame.this)) {
-                                            Log.d(TAG, "choosinggame no db no wifi, checknetworktrue");
-                                            CheckNetwork.showNoConnectionDialog(ChoosingGame.this, false); //display dialog
-                                        } else {//// TODO: 5/27/2016 burdan yollayinca mainactivity boolean degistirilemiyor. o yüzden maine yollamak lazim.
-                                            new CreateTrainingResponse(ChoosingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
-                                            //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
-                                            //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
+                                            Log.d(TAG, "CHOOSINGGAME no db no wifi, checknetworktrue");
+                                            CheckNetwork.showNoConnectionDialog(ChoosingGame.this, false, 2); //display dialog
+                                        } else {//// TODO: 5/27/2016 burdan yollayinca gif_mainactivity boolean degistirilemiyor. o yüzden maine yollamak lazim.
+                                            isThreadRunning = false;
+                                            new CreateTrainingResponse(ChoosingGame.this, false, username).execute(trainingID);
+                                            //// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
+                                            ////  5/18/2016 id ile baska olamaz, dogru seyi cekecektir
+                                            ////  5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
                                             Intent intent = new Intent(ChoosingGame.this, MainActivity.class);
                                             intent.putExtra("username", username);
-                                          //  startActivity(intent);
-                                           // finish();
+
+                                       //     startActivity(intent);
+                                         //   finish();
                                         }
                                     }
                                 }
                             });
 
                         }//if end
+
                     }
                 }
                 catch(InterruptedException ex){
@@ -647,7 +872,21 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
                 }
 
                 // TODO
+/*                synchronized (thread) {
+                    while (mPaused) {
+                        Log.d(TAG, "choosinggame mpaused");
+
+                        try {
+                            thread.wait(1000);
+                               Log.d(TAG, "choosinggame mpaused 1000");
+                        } catch (InterruptedException e) {
+                            Log.d(TAG, "choosinggame mpaused error");
+                            e.printStackTrace();
+                        }
+                    }
+                }*/
             }
+
         };
 
         thread.start();
@@ -659,20 +898,21 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
                     Log.d(TAG, "choosinggame no db no wifi, checknetworktrue");
                     CheckNetwork.showNoConnectionDialog(this, false); //display dialog
                 } else {
-                    new CreateTrainingResponse(this).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
-                    //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
-                    //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
+                    new CreateTrainingResponse(this).execute(trainingID);
                 }
             }//thread end
         }//if end*/
 
-//// TODO: 5/20/2016 onresume filan lazim
+//// yapıldı T ODO: 5/20/2016 onresume filan lazim
 
     }
     @Override//oncreatede bir sey yok onibitte oluyor her sey.
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "choosingggame OnCreate");
+        Log.d(TAG, "CHOOSINGGAME OnCreate");
         super.onCreate(savedInstanceState);
+        //this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+       // this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         setContentView(R.layout.activity_choosegame);
 
         Display display = getWindowManager().getDefaultDisplay();
@@ -680,7 +920,7 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
         display.getSize(size);
         width = size.x;
         height = size.y;
-        Log.d(TAG,"width:"+width+" height:"+height);//// TODO: 5/27/2016 sil
+        Log.d(TAG,"CHOOSINGGAME width:"+width+" height:"+height);//// TODO: 5/27/2016 sil
 
         tts = new TextToSpeech(this,this);
 
@@ -704,9 +944,8 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
         trainingID = getIntent().getExtras().getInt("trainingid");
         level = getIntent().getExtras().getInt("level");
         username = getIntent().getExtras().getString("username");
-        Log.d(TAG, "traininfid: "+trainingID+" level: "+level);
+        Log.d(TAG, "CHOOSINGGAME traininfid: "+trainingID+" level: "+level);
 
-        counter = counter + level;
 
         demoObjectObject = dbHandler.getDemoObjectObject(trainingID);
 
@@ -801,7 +1040,7 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
         }//for end
 
         trainingObjectList = dbHandler.getAllTrainingObject(trainingID);*/
-//// TODO: 02.05.2016 egitim kismi oalcak burda tek tek gosterilecek
+//// yapıldı T ODO: 02.05.2016 egitim kismi oalcak burda tek tek gosterilecek
 
    // setupDemo();
 
@@ -817,8 +1056,8 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
  * **************************************************************
  */
 
-//// TODO: 5/18/2016 response tek tek eklenecek listeye for içinde
-        //// TODO: 5/18/2016 ,zaten hepsi eklenmisse for sonunda
+//// yapıldı  TO DO: 5/18/2016 response tek tek eklenecek listeye for içinde
+        ////  ,zaten hepsi eklenmisse for sonunda
 
     /*    trainingResponse.setTrainingID(trainingID);
         trainingResponse.setStudentUserName(username);
@@ -832,205 +1071,274 @@ Log.d(TAG,"objectAnswer.getObjectID():"+objectAnswer.getObjectID()+"imageOne.get
         dbHandler.addTrainingResponse(trainingResponse);
      //   trainingResponseList.add(trainingResponse);//to sent server
 
-//// TODO: 5/18/2016 if total questions all sent:büyük ihtimalle gerek yok buna çünkü for sonrası olacak bu, yani tüm hepsi bitmis olacak
+//// yapıldı T ODO: 5/18/2016 if total questions all sent:büyük ihtimalle gerek yok buna çünkü for sonrası olacak bu, yani tüm hepsi bitmis olacak
 dbHandler.setTrainingCompletedAll(trainingID);
-        //// TODO: 5/18/2016 internet bagliysa yolla ya da önce maine mi gitse.mainde de kontrol yapilir normal*/
+        //// yapıldı T ODO: 5/18/2016 internet bagliysa yolla ya da önce maine mi gitse.mainde de kontrol yapilir normal*/
 
         ////
-        Log.d(TAG, "choosingggame OnCreate ends");
+        Log.d(TAG, "CHOOSINGGAME  OnCreate ends");
     }//oncreate end
 
     @Override
     public void onClick(View v) {
 
-        //isImageDragged = true;
-        synchronized(
-                thread){
+        Log.d(TAG, "CHOOSINGGAME  onlick");
 
-            if (v.getTag().equals (trainingObject.getTrainingobjectAnswer())) {
-                Log.d(TAG, counter+" clicked "+v.getTag()+" - "+trainingObject.getTrainingobjectAnswer());
-
-                    if(!isNextLevelToGo && !isImageClicked){
-                      //  Log.d(TAG,counter+" nextlevel  counter:");
-                        thread.interrupt();
-                        isNextLevelToGo = true;
-                        isImageClicked = true ;
-                        currentDate = new Date();
-
-                        trainingResponse.setTrainingResponseScore(POSITIVE_SCORE);
-                        trainingResponse.setTrainingResponseFinishTime(String.valueOf(currentDate.getTime() / 1000));
-                        dbHandler.addTrainingResponse(trainingResponse);
-
-                       // counter++;
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                               // Log.d(TAG,counter-1+" run ui level  counter:");
-                                if(counter+1<trainingObjectList.size()) {
-                                    setupForGame();
-                                }
-                                else{//bitir activity. main activitiye dönülebilir belki.
-                                    dbHandler.setTrainingCompletedAll(trainingID);
-                                    if (!CheckNetwork.isOnline(ChoosingGame.this)) {
-                                        Log.d(TAG, "choosinggame no db no wifi, checknetworktrue");
-                                        CheckNetwork.showNoConnectionDialog(ChoosingGame.this, false); //display dialog
-                                    } else {
-                                        new CreateTrainingResponse(ChoosingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
-                                        //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
-                                        //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
-                                        Intent intent = new Intent(ChoosingGame.this, MainActivity.class);
-                                        intent.putExtra("username", username);
-                                     //   startActivity(intent);
-                                       // finish();
-                                    }
-                                }
-                            }
-
-                        });
-
-                    }//if end
-                    else{
-                        if(!isNextLevelToGo){
-                            isNextLevelToGo = true;
-                            //bu durumda 1 kez tiklanmistir yanlis. //// TODO: 5/20/2016 positive ver sonra reset
-                            thread.interrupt();
-                            isImageClicked = true;
-
-                            currentDate = new Date();
-
-                            trainingResponse.setTrainingResponseScore(HALF_SCORE);
-                            trainingResponse.setTrainingResponseFinishTime(String.valueOf(currentDate.getTime() / 1000));
-                            dbHandler.addTrainingResponse(trainingResponse);
-
-                         //   counter++;
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if(counter+1<trainingObjectList.size()) {
-                                        setupForGame();
-                                    }
-                                    else{//bitir activity. main activitiye dönülebilir belki.
-                                        dbHandler.setTrainingCompletedAll(trainingID);
-                                        if (!CheckNetwork.isOnline(ChoosingGame.this)) {
-                                            Log.d(TAG, "choosinggame no db no wifi, checknetworktrue");
-                                            CheckNetwork.showNoConnectionDialog(ChoosingGame.this, false); //display dialog
-                                        } else {
-                                            new CreateTrainingResponse(ChoosingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
-                                            //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
-                                            //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
-                                            Intent intent = new Intent(ChoosingGame.this, MainActivity.class);
-                                            intent.putExtra("username", username);
-                                         //   startActivity(intent);
-                                           // finish();
-                                        }
-                                    }
-                                }
-                            });
-                        }//if ends, else zaten yeni gidilmistir level
-                    }
+        if (v.equals(backButtonImg)) {
+            Log.d(TAG, "CHOOSINGGAME  backbtnimg clicked");
+            final Context ctx = this;
+            AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+            builder.setCancelable(true);
+            builder.setTitle("Egitiminizi sonlandirmak istediginize emin misiniz?");
+            //builder.setMessage("Cikilsin mi?");
+            builder.setPositiveButton("Egitimden cik", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    // terminateProcesses();
+                    Intent intent = new Intent(ChoosingGame.this, MainActivity.class);
+                    intent.putExtra("username", username);
+                    startActivity(intent);
+                    finish();
                 }
-            else{
-                Log.d(TAG, "nonclick"+ counter+" -  "+v.getTag()+" - "+trainingObject.getTrainingobjectAnswer());
+            });
+            builder.setNegativeButton("Egitim devam et", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    return;
+                }
+            });
+            builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                public void onCancel(DialogInterface dialog) {
+                    return;
+                }
+            });
+            builder.show();
 
-                    if(!isNextLevelToGo && !isImageClicked){
-                        //ilk yanlis cevabi
-                        isImageClicked = true ;
-                        //isNextLevelToGo = false;
-                        //  Log.d(TAG,counter+" nextlevel  counter:");
-                       // thread.interrupt();
-                        //todo efekt
 
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Animation fadeIn = new AlphaAnimation(0, 1);
-                                fadeIn.setInterpolator(new DecelerateInterpolator()); //add this
-                                fadeIn.setDuration(2000);
-                                Animation fadeOut = new AlphaAnimation(1, 0);
-                                fadeOut.setInterpolator(new AccelerateInterpolator()); //and this
-                                fadeOut.setStartOffset(2000);
-                                fadeOut.setDuration(2000);
+        } else {
+            if (v.equals(forwardButtonImg)) {
+                Log.d(TAG, "CHOOSINGGAME  fwdbtnimg clicked");
+                if (tts.isSpeaking()) {
+                    tts.stop();
+                    Log.d(TAG, "CHOOSINGGAME tts speak, stopped");
+                }
+                    //// yapıldı T ODO: 5/30/2016 burda handler durdurulmali
+                handler.removeCallbacksAndMessages(null);
+                isHandlerRunning = false;
+                setupForGame();
+               // if (thread.isAlive()) {
+                   // Log.d(TAG, "threadelive stopped");
+                   // thread.interrupt();
+              //  }
 
-                                AnimationSet animation = new AnimationSet(false); //change to false
-                                animation.addAnimation(fadeIn);
-                                animation.addAnimation(fadeOut);
-                                isAnimationStarted = true;
-                                ChoosingGame.this.correctImage[0].startAnimation(animation);
-                            }
-                        });
+            } else {//imagelarsa
 
-                        // isNextLevelToGo = true;
-                      //  counter++;
-                    //todo isclicked
+                Log.d(TAG, "CHOOSINGGAME  fonlick else");
 
-                    }//if end
-                    else{
-                        if(!isNextLevelToGo){//2. kez yanlis cevap
+                //isImageDragged = true;
+                synchronized (
+                        thread) {
+
+                    if (v.getTag().equals(trainingObject.getTrainingobjectAnswer())) {
+                        Log.d(TAG, counter + " clicked " + v.getTag() + " - " + trainingObject.getTrainingobjectAnswer());
+
+                        if (!isNextLevelToGo && !isImageClicked) {
+                            //  Log.d(TAG,counter+" nextlevel  counter:");
+                            //dogru cevap ilk seferde
+                            thread.interrupt();
                             isNextLevelToGo = true;
-                            //bu durumda 1 kez tiklanmistir yanlis. //// TODO: 5/20/2016 negative ver sonra reset
-
-                             thread.interrupt();
-                            isNextLevelToGo = true;
-                          //  counter++;
-
+                            isImageClicked = true;
                             currentDate = new Date();
 
-                            trainingResponse.setTrainingResponseScore(NEGATIVE_SCORE);
+                            trainingResponse.setTrainingResponseScore(POSITIVE_SCORE);
                             trainingResponse.setTrainingResponseFinishTime(String.valueOf(currentDate.getTime() / 1000));
+                            trainingResponse.setAnswerObjectID(trainingObject.getTrainingobjectAnswer());
+                            trainingResponse.setAnswerTwoObjectID(0);
                             dbHandler.addTrainingResponse(trainingResponse);
-
+                            Log.d(TAG, "CHOOSINGGAME trarespo " + trainingResponse.toString());//// TODO: 5/29/2016 geçicisil
+                            // counter++;
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     // Log.d(TAG,counter-1+" run ui level  counter:");
-                                    if(counter+1<trainingObjectList.size()) {
+                                    if (counter + 1 < trainingObjectList.size()) {
                                         setupForGame();
-                                    }
-                                    else{//bitir activity. main activitiye dönülebilir belki.
+                                    } else {//bitir activity. main activitiye dönülebilir belki.
                                         dbHandler.setTrainingCompletedAll(trainingID);
                                         if (!CheckNetwork.isOnline(ChoosingGame.this)) {
-                                            Log.d(TAG, "choosinggame no db no wifi, checknetworktrue");
-                                            CheckNetwork.showNoConnectionDialog(ChoosingGame.this, false); //display dialog
+                                            Log.d(TAG, "CHOOSINGGAME  no db no wifi, checknetworktrue");
+                                            CheckNetwork.showNoConnectionDialog(ChoosingGame.this, false, 2); //display dialog
                                         } else {
-                                            new CreateTrainingResponse(ChoosingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
-                                            //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
-                                            //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
+                                            isThreadRunning = false;
+                                            new CreateTrainingResponse(ChoosingGame.this, false, username).execute(trainingID);
                                             Intent intent = new Intent(ChoosingGame.this, MainActivity.class);
                                             intent.putExtra("username", username);
-                                           // startActivity(intent);
-                                            //finish();
+                                          //  startActivity(intent);
+                                          //  finish();
                                         }
                                     }
                                 }
+
                             });
-                        }//if ends, else zaten yeni gidilmistir level
-                    }
-                }
-    }//thread sync
+
+                        }//if end
+                        else {
+                            if (!isNextLevelToGo) {
+                                isNextLevelToGo = true;
+                                //bu durumda 1 kez tiklanmistir yanlis. //// yapıldı T ODO: 5/20/2016 positive ver sonra reset
+                                thread.interrupt();
+                                isImageClicked = true;
+
+                                currentDate = new Date();
+
+                                trainingResponse.setAnswerTwoObjectID(trainingObject.getTrainingobjectAnswer());
+                                trainingResponse.setTrainingResponseScore(HALF_SCORE);
+                                trainingResponse.setTrainingResponseFinishTime(String.valueOf(currentDate.getTime() / 1000));
+                                dbHandler.addTrainingResponse(trainingResponse);
+                                Log.d(TAG, "CHOOSINGGAME trarespo " + trainingResponse.toString());//// TODO: 5/29/2016 geçicisil
+                                //   counter++;
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (counter + 1 < trainingObjectList.size()) {
+                                            setupForGame();
+                                        } else {//bitir activity. main activitiye dönülebilir belki.
+                                            dbHandler.setTrainingCompletedAll(trainingID);
+                                            if (!CheckNetwork.isOnline(ChoosingGame.this)) {
+                                                Log.d(TAG, "CHOOSINGGAME  no db no wifi, checknetworktrue");
+                                                CheckNetwork.showNoConnectionDialog(ChoosingGame.this, false, 2); //display dialog
+                                            } else {
+                                                isThreadRunning = false;
+                                                new CreateTrainingResponse(ChoosingGame.this, false, username).execute(trainingID);
+                                                Intent intent = new Intent(ChoosingGame.this, MainActivity.class);
+                                                intent.putExtra("username", username);
+                                             //   startActivity(intent);
+                                               // finish();
+                                            }
+                                        }
+                                    }
+                                });
+                            }//if ends, else zaten yeni gidilmistir level
+                        }//else
+                    }  //if dogru degilse
+                            else {//dogru cevap degilse
+
+                                Log.d(TAG, "CHOOSINGGAME nonclick" + counter + " -  " + v.getTag() + " - " + trainingObject.getTrainingobjectAnswer());
+
+                                if (!isNextLevelToGo && !isImageClicked) {
+                                    //ilk yanlis cevabi
+                                    isImageClicked = true;
+                                    trainingResponse.setAnswerObjectID((Integer) v.getTag());
+                                    //isNextLevelToGo = false;
+                                    //  Log.d(TAG,counter+" nextlevel  counter:");
+                                    // thread.interrupt();
+                                    //yapıldı t odo efekt
+
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Animation fadeIn = new AlphaAnimation(0, 1);
+                                            fadeIn.setInterpolator(new DecelerateInterpolator()); //add this
+                                            fadeIn.setDuration(2000);
+                                            Animation fadeOut = new AlphaAnimation(1, 0);
+                                            fadeOut.setInterpolator(new AccelerateInterpolator()); //and this
+                                            fadeOut.setStartOffset(2000);
+                                            fadeOut.setDuration(2000);
+
+                                            AnimationSet animation = new AnimationSet(false); //change to false
+                                            animation.addAnimation(fadeIn);
+                                            animation.addAnimation(fadeOut);
+                                            isAnimationStarted = true;
+                                            ChoosingGame.this.correctImage[0].startAnimation(animation);
+                                        }
+                                    });
+
+                                    // isNextLevelToGo = true;
+                                    //  counter++;
+                                    //yapıldı t odo isclicked
+
+                                }//if end
+                                else {
+                                    if (!isNextLevelToGo) {//2. kez yanlis cevap
+                                        isNextLevelToGo = true;
+                                        //bu durumda 1 kez tiklanmistir yanlis. //// yapıldı T ODO: 5/20/2016 negative ver sonra reset
+
+                                        thread.interrupt();
+                                        isNextLevelToGo = true;
+                                        //  counter++;
+
+                                        currentDate = new Date();
+
+                                        trainingResponse.setAnswerTwoObjectID((Integer) v.getTag());
+                                        trainingResponse.setTrainingResponseScore(NEGATIVE_SCORE);
+                                        trainingResponse.setTrainingResponseFinishTime(String.valueOf(currentDate.getTime() / 1000));
+                                        dbHandler.addTrainingResponse(trainingResponse);
+                                        Log.d(TAG, "CHOOSINGGAME trarespo " + trainingResponse.toString());//// TODO: 5/29/2016 geçicisil
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                // Log.d(TAG,counter-1+" run ui level  counter:");
+                                                if (counter + 1 < trainingObjectList.size()) {
+                                                    setupForGame();
+                                                } else {//bitir activity. main activitiye dönülebilir belki.
+                                                    dbHandler.setTrainingCompletedAll(trainingID);
+                                                    if (!CheckNetwork.isOnline(ChoosingGame.this)) {
+                                                        Log.d(TAG, "CHOOSINGGAME no db no wifi, checknetworktrue");
+                                                        CheckNetwork.showNoConnectionDialog(ChoosingGame.this, false, 2); //display dialog
+                                                    } else {
+                                                        isThreadRunning = false;
+                                                        new CreateTrainingResponse(ChoosingGame.this, false, username).execute(trainingID);
+                                                        Intent intent = new Intent(ChoosingGame.this, MainActivity.class);
+                                                        intent.putExtra("username", username);
+                                                       // startActivity(intent);
+                                                       // finish();
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }//if ends, else zaten yeni gidilmistir level
+                                }
+                            }
+                        }//thread sync
+            }//if images clicked not buttons
+         }//else end
     }//onclick end
 
     @Override
     public void onInit(int status) {
-        Log.d(TAG, "choosinggame oninit");
-
+        Log.d(TAG, "CHOOSINGGAME  oninit");
+        Log.d(TAG, "CHOOSINGGAME  oninit isthreadrunning=" + isThreadRunning);//todo sil
         if (status == TextToSpeech.SUCCESS) {
-            Log.d(TAG, "choosinggame OnInit - Status suces");
+            Log.d(TAG, "CHOOSINGGAME  OnInit - Status suces");
             //  tts.setLanguage(Locale.getDefault());
             // Log.d(TAG, "locale: "+Locale.getDefault());
-           // Locale locale = new Locale("tr", "TR");
+            // Locale locale = new Locale("tr", "TR");
             tts.setLanguage(Locale.getDefault());
-          //  Log.d(TAG, "locale: "+locale.toString());
-        }
-        else{
-            Log.d(TAG,"choosing game oninit status else");
+            //  Log.d(TAG, "locale: "+locale.toString());
+        } else {
+            Log.d(TAG, "CHOOSINGGAME  oninit status else error");
+            //// TODO: 6/2/2016 simdilik böyle yaptim
+            //sessiz oynamya devam edilsin mi diyaglogu
+            Intent intent = new Intent(ChoosingGame.this, MainActivity.class);
+            intent.putExtra("username", username);
+            startActivity(intent);
+            finish();
         }
 
-        if(level == 0) {
-            setupDemo();//// TODO: 5/21/2016 hata olursa mne olcak sessiz mi, belki yazili olan yapilabilir
-        }
-        else{
-            setupForGame();
-        }
+
+            if (level == 0) {
+                setupDemo();
+                //setupForGame();
+            } else {
+                if (!isPaused) {
+                    Log.d(TAG, "CHOOSINGGAME  oninit isPaused false");
+                    level = dbHandler.getCurrentLevel(trainingID);
+                    counter = level - 1;
+                    setupForGame();
+                }
+                else
+                {
+                    Log.d(TAG, "CHOOSINGGAME  oninit isPaused true****buraya girmemeli");
+                }
+            }
+
     }
-
 }//class end

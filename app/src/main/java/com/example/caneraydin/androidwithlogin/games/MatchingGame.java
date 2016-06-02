@@ -7,12 +7,14 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Display;
 import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -45,7 +47,7 @@ import android.view.View.OnTouchListener;
 /**
  * Created by caneraydin on 17.04.2016.
  */
-public class MatchingGame extends AppCompatActivity implements TextToSpeech.OnInitListener, View.OnDragListener {
+public class MatchingGame extends Activity implements TextToSpeech.OnInitListener, View.OnDragListener {
 
     String TAG = "Chic";
 
@@ -55,10 +57,20 @@ public class MatchingGame extends AppCompatActivity implements TextToSpeech.OnIn
 
     //for demo
     String username, speech,
-            KEY_THIS = "Bu", KEY_AN = " bir";
-    // KEY_CHOOSE_WHICH_IS = " olani seciniz...";
+            KEY_THIS = "Bu,",
+            KEY_AN = ", bir ",
+            KEY_BEING = " olan, ",
+            KEY_OBJECT_IS = " nesnesidir ",
+            KEY_OBJECT = " nesnedir ";
 
-    String[] KEY_AIM_NAME = {" şeklinde olanları eşleştiriniz", " renkte olanları eşleştiriniz", " sayısında olanları eşleştiriniz"};
+    //// TODO: 5/21/2016 merhaba ghosgeldiniz username denebilir belki
+    // KEY_MATCH_WHICH_IS = " olani seciniz...";
+
+    String [] KEY_READ = {", şekli ", ", rengi ", ", sayısında "};
+
+    String KEY_MATCH_WHICH = ", olanları eşleştiriniz.",
+    //   KEY_IN_THE_SCREEN = "Ekrandakilerden ",
+    KEY_MATCH_THE_OBJECT_WHICH = ", nesnelerini eşleştiriniz.";
 
     List<TrainingObject> trainingObjectList;
 
@@ -82,7 +94,10 @@ public class MatchingGame extends AppCompatActivity implements TextToSpeech.OnIn
 
     Date currentDate;
 
-    int counter = -1, aim;
+    int counter = -1, aim,
+    width, height;
+
+    int colorRead, nameRead, countRead, shapeRead;
 
     boolean isNextLevelToGo = false,//cakisma olmasın diye saniye ve sürükleme
             isImageDragged = false,//resme tiklatyinca cakisma olmasin diye
@@ -90,7 +105,7 @@ public class MatchingGame extends AppCompatActivity implements TextToSpeech.OnIn
 
     private Thread thread;
 
-    int POSITIVE_SCORE = 1, NEGATIVE_SCORE = -1, HALF_SCORE = 0, LEVEL_SCORE = 0;
+    int POSITIVE_SCORE = 2, NEGATIVE_SCORE = 0, HALF_SCORE = 1, LEVEL_SCORE = 0;
 
     TrainingObject trainingObject;
 
@@ -117,7 +132,7 @@ public class MatchingGame extends AppCompatActivity implements TextToSpeech.OnIn
 
         demoObjectObject = dbHandler.getDemoObjectObject(trainingID);
 
-        final RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(140, 140);
+        final RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(height/3, height/3);
 
         //putting middle to show demo of items in each iteration
         rLayParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
@@ -204,7 +219,6 @@ public class MatchingGame extends AppCompatActivity implements TextToSpeech.OnIn
         Log.d(TAG, "setupdemo end");
     }//setupdemoend
 
-//// TODO: 5/20/2016 onresume onpause yap yska karısiyior
 /*    protected void onPause(){
         super.onPause(); //
         if(thread.isAlive()){
@@ -216,7 +230,6 @@ public class MatchingGame extends AppCompatActivity implements TextToSpeech.OnIn
             }
         }
     }
-
     protected void onResume(){
         super.onResume();
         if(threadPause){
@@ -228,7 +241,7 @@ public class MatchingGame extends AppCompatActivity implements TextToSpeech.OnIn
 
         Log.d(TAG, "matching game settwoobjectlayout");
 
-        RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(140,140);
+        RelativeLayout.LayoutParams rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
         objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectOne());
 
@@ -243,6 +256,7 @@ public class MatchingGame extends AppCompatActivity implements TextToSpeech.OnIn
         imageOne.setTag(trainingObject.getTrainingobjectOne());
         imageOne.setId(R.id.imgOne);
         rLayout.addView(imageOne,rLayParams);
+        imageOne.setOnDragListener(this);
 
         rLayParams = null;
         objectResponse = null;
@@ -252,8 +266,8 @@ public class MatchingGame extends AppCompatActivity implements TextToSpeech.OnIn
         /*******************************************************************************************/
 
         objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectTwo());
-Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici sil
-        rLayParams = new RelativeLayout.LayoutParams(140,140);
+        Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici sil
+        rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
@@ -267,8 +281,8 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
         imageTwo.setId(R.id.imgTwo);
         //rLayout.removeAllViews();
         rLayout.addView(imageTwo,rLayParams);
+        imageTwo.setOnDragListener(this);
 
-        //// TODO: 5/22/2016 listeners
     }
 
     void setupForGame(){
@@ -291,7 +305,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
 
         LEVEL_SCORE =0;
 
-        speech = null;
+        speech = "";
 
         counter++;
         //get trainingobjects for trainingid
@@ -304,52 +318,67 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
         trainingObject = null;
 
         //get trainingobject
-        trainingObject = trainingObjectList.get(counter);
-        Log.d(TAG,"trainingobjhect: "+trainingObject.toString());//// TODO: 5/22/2016 geçicisil
+        trainingObject = trainingObjectList.get(counter%trainingObjectList.size());//// TODO: 5/22/2016 mod aldım burda çünkü hata veriyor su an icin, ck syida var diye
 
         trainingResponse.setTrainingID(trainingID);
-        trainingResponse.setObjectID(trainingObject.getTrainingobjectID());
+        trainingResponse.setQuestionObjectID(trainingObject.getTrainingobjectID());
         trainingResponse.setTrainingStarted(1);
         trainingResponse.setStudentUserName(username);
         trainingResponse.setTrainingCompleted(0);
         trainingResponse.setResponseSent(0);
+        // trainingResponse.setAnswerObjectID(0);
 
         objectCount = 1+trainingObject.getTrainingobjectLevel() ;
         Log.d(TAG,"objcount: "+objectCount);
 
+        if(counter==0) {//todo sil
+            for (int i = 0; i < trainingObjectList.size(); i++) {
+                Log.d(TAG, "Bu nesnenin şekli " + dbHandler.getShapeName(trainingObjectList.get(i).getTrainingobjectAnswer()) +
+                        " rengi ise" + dbHandler.getColorName(trainingObjectList.get(i).getTrainingobjectAnswer()));
+            }
+            dbHandler.getAllObjectObject();
+        }
+
         //those are standarst for each level so defining before switchcase
 
         /*******************************************************************************************/
-
-
 
         correctImage = new ImageView[1];
 
         objectResponse = new ObjectObject();
         objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectAnswer());
 
+        colorRead = dbHandler.getTrainingColorRead(trainingID);//// TODO: 5/29/2016 gecici bu dordu sil sonra.setupgame direk basliyr diye yaptim. choosingten bak onresume iyi mi
+        nameRead = dbHandler.getTrainingNameRead(trainingID);
+        shapeRead = dbHandler.getTrainingShapeRead(trainingID);
+        countRead = dbHandler.getTrainingCountRead(trainingID);
+
         RelativeLayout.LayoutParams rLayParams;
 
-        rLayParams = new RelativeLayout.LayoutParams(140,140);
+        rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
         rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);//ortaya gelecek
         rLayParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);//ortaya gelecek
 
-        switch(dbHandler.getTrainingAim(trainingID)) {
-            case 1:
-                Log.d(TAG,"matching game gettraningaim case1 renk");
-                speech = dbHandler.getColorName(objectResponse.getColorID())+KEY_AIM_NAME[1];
-                Log.d(TAG,speech);
-                break;
-            case 0:
-                Log.d(TAG,"matching game gettraningaim case1 sekil");
-                speech = dbHandler.getShapeName(objectResponse.getShapeID())+KEY_AIM_NAME[0];
-                Log.d(TAG,speech);
-                break;
-            default:
-                Log.d(TAG,"matching game gettraningaim case default");
-                break;
+        if(colorRead == 1){
+            speech = speech + KEY_READ[1]+ dbHandler.getColorName(objectResponse.getColorID());
         }
+
+        if(shapeRead == 1){
+            speech = speech + KEY_READ[0]+ dbHandler.getShapeName(objectResponse.getShapeID());
+        }
+
+        if(nameRead == 1){
+            speech = speech + dbHandler.getObjectName(objectResponse.getObjectID())+KEY_MATCH_THE_OBJECT_WHICH;
+        }
+        else{
+            speech = speech + KEY_MATCH_WHICH;
+        }
+
+
+
+
+        Log.d(TAG,"speech: "+speech);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null, null);
@@ -366,11 +395,10 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
         imageAnswer.setTag(trainingObject.getTrainingobjectAnswer());
         imageAnswer.findViewById(R.id.imgAnswer);
 
-        int idThatCanBeUsedLater = R.id.imgAnswer;
+/*        int idThatCanBeUsedLater = R.id.imgAnswer;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1) {  Log.d(TAG,"if");
             idThatCanBeUsedLater = View.generateViewId();
-            imageAnswer.setId(idThatCanBeUsedLater);}
-
+            imageAnswer.setId(idThatCanBeUsedLater);}*/
 
 
         rLayout.removeAllViews();
@@ -387,7 +415,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                     Log.d(TAG,"parent "+ String.valueOf(imageAnswer.getParent()));
                     Log.d(TAG, "view "+String.valueOf(v));
                     ClipData data = ClipData.newPlainText("", "");
-                 //  Log.d(TAG,"data: "+data.toString());
+                    //  Log.d(TAG,"data: "+data.toString());
                     View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
                     v.startDrag(data, shadowBuilder, v, 0);
                     v.setVisibility(View.INVISIBLE);
@@ -410,9 +438,9 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
             }
         });
 
+        objectResponse = null;
+
         imageAnswer.setOnDragListener(this);
-
-
 
         switch (objectCount) {
             case 2:
@@ -436,7 +464,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
 
                 objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectThree());
 
-                rLayParams = new RelativeLayout.LayoutParams(140,140);
+                rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
                 rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);//ortaya gelecek
                 rLayParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -450,8 +478,8 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                 imageThree.setId(R.id.imgThree);
 
                 rLayout.addView(imageThree,rLayParams);
+                imageThree.setOnDragListener(this);
 
-                //// TODO: 5/22/2016 listeners
 
                 break;
 
@@ -467,10 +495,10 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
 
                 objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectThree());
 
-                rLayParams = new RelativeLayout.LayoutParams(140,140);
+                rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
                 rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);//ortaya gelecek
-                rLayParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                rLayParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
 
                 imgBytes = objectResponse.getObjectImageBlob();
                 bmp = BitmapFactory.decodeByteArray(imgBytes, 0, imgBytes.length);
@@ -481,7 +509,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                 imageThree.setId(R.id.imgThree);
 
                 rLayout.addView(imageThree,rLayParams);
-
+                imageThree.setOnDragListener(this);
                 /***********/
 
                 rLayParams = null;
@@ -491,9 +519,10 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
 
                 objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectFour());
 
-                rLayParams = new RelativeLayout.LayoutParams(140,140);
+                rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
                 rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);//ortaya gelecek
+                rLayParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 
                 imgBytes = objectResponse.getObjectImageBlob();
                 bmp = BitmapFactory.decodeByteArray(imgBytes, 0, imgBytes.length);
@@ -504,7 +533,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                 imageFour.setId(R.id.imgFour);
 
                 rLayout.addView(imageFour,rLayParams);
-
+                imageFour.setOnDragListener(this);
 
 
 
@@ -522,7 +551,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
 
                 objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectThree());
 
-                rLayParams = new RelativeLayout.LayoutParams(140,140);
+                rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
                 rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);//ortaya gelecek
                 rLayParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -536,7 +565,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                 imageThree.setId(R.id.imgThree);
 
                 rLayout.addView(imageThree,rLayParams);
-
+                imageThree.setOnDragListener(this);
                 /***************/
 
                 rLayParams = null;
@@ -546,7 +575,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
 
                 objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectFour());
 
-                rLayParams = new RelativeLayout.LayoutParams(140,140);
+                rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
                 rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);//ortaya gelecek
                 rLayParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
@@ -560,7 +589,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                 imageFour.setId(R.id.imgFour);
 
                 rLayout.addView(imageFour,rLayParams);
-
+                imageFour.setOnDragListener(this);
                 /**************/
 
                 rLayParams = null;
@@ -570,7 +599,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
 
                 objectResponse = dbHandler.getObjectObject(trainingObject.getTrainingobjectFive());
 
-                rLayParams = new RelativeLayout.LayoutParams(140,140);
+                rLayParams = new RelativeLayout.LayoutParams(height/3,height/3);
 
                 rLayParams.addRule(RelativeLayout.CENTER_IN_PARENT);//ortaya gelecek
                 rLayParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
@@ -584,8 +613,8 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                 imageFive.setId(R.id.imgFive);
 
                 rLayout.addView(imageFive,rLayParams);
+                imageFive.setOnDragListener(this);
 
-      //// TODO: 5/22/2016 listeners
 
                 break;
 
@@ -620,10 +649,10 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                 try {
                     synchronized(this){
                         Log.d(TAG,counter+" waiting 5 seconds counter:");
-                        wait(400000);
+                        wait(4000);
                         Log.d(TAG,"objectAnswer.getObjectID():"+objectResponse.getObjectID()+"imageOne.getTag():"+imageOne.getTag()+"imageTwo.getTag()"+imageTwo.getTag());
 
-                        wait(100000);
+                        wait(1000);
                         Log.d(TAG,counter+" waiting 5 seconds efekt counter:");
 
                         runOnUiThread(new Runnable() {
@@ -646,7 +675,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                             }
                         });
 
-                        wait(500000);
+                        wait(5000);
                         if(!isNextLevelToGo) {
                             // Log.d(TAG,counter+" nextlevel  counter:");
                             isNextLevelToGo = true;
@@ -658,7 +687,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                                     //süre bitti cevaplamadi. negative
                                     currentDate = new Date();
 
-                                    trainingResponse.setTrainingResponseScore(NEGATIVE_SCORE);//// TODO: 5/22/2016 bunu niy yapmisim bilmiyorum
+                                    trainingResponse.setTrainingResponseScore(NEGATIVE_SCORE);
                                     trainingResponse.setTrainingResponseFinishTime(String.valueOf(currentDate.getTime() / 1000));
                                     dbHandler.addTrainingResponse(trainingResponse);
                                     //     Log.d(TAG,counter-1+" run ui level  counter:");
@@ -669,15 +698,13 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                                         dbHandler.setTrainingCompletedAll(trainingID);
                                         if (!CheckNetwork.isOnline(MatchingGame.this)) {
                                             Log.d(TAG, "Matchgame no db no wifi, checknetworktrue");
-                                            CheckNetwork.showNoConnectionDialog(MatchingGame.this, false); //display dialog
+                                            CheckNetwork.showNoConnectionDialog(MatchingGame.this, false, 2); //display dialog
                                         } else {
-                                            new CreateTrainingResponse(MatchingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
-                                            //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
-                                            //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
+                                            new CreateTrainingResponse(MatchingGame.this, false, username).execute(trainingID);
                                             Intent intent = new Intent(MatchingGame.this, MainActivity.class);
                                             intent.putExtra("username", username);
-                                            //  startActivity(intent);
-                                            // finish();
+                                              //startActivity(intent);
+                                             //finish();
                                         }
                                     }
                                 }
@@ -708,8 +735,15 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "matching ggame OnCreate");
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_choosegame);
+        setContentView(R.layout.activity_matchgame);
 
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        width = size.x;
+        height = size.y;
+
+        Log.d(TAG,"width:"+width+" height:"+height);//// TODO: 5/27/2016 sil
         tts = new TextToSpeech(this,this);
 
         dbHandler = new DatabaseHandler(this);
@@ -787,7 +821,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
         switch (dragEvent.getAction()) {
 
             case DragEvent.ACTION_DRAG_STARTED:
-                  Log.d(TAG, "drag action started");
+                Log.d(TAG, "drag action started");
 
                 // Determines if this View can accept the dragged data
                 if (dragEvent.getClipDescription()
@@ -833,7 +867,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                 Log.d(TAG,  "swtich önesii "+dropOntoImg.getTag().toString());
 
                 if(dropOntoImg.getTag().equals(draggedImageView.getTag())){
-                    Log.d(TAG,"true "+dropOntoImg.getTag()+" droppeged true with dragged"+ draggedImageView.getTag() + "");
+                    Log.d(TAG,"true**** "+dropOntoImg.getTag()+" droppeged true with dragged"+ draggedImageView.getTag() + "");
 
                     if(!isNextLevelToGo && !isImageDragged){
                         //  Log.d(TAG,counter+" nextlevel  counter:");
@@ -844,8 +878,10 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
 
                         trainingResponse.setTrainingResponseScore(POSITIVE_SCORE);
                         trainingResponse.setTrainingResponseFinishTime(String.valueOf(currentDate.getTime() / 1000));
+                        trainingResponse.setAnswerObjectID(trainingObject.getTrainingobjectAnswer());
+                        trainingResponse.setAnswerTwoObjectID(0);
                         dbHandler.addTrainingResponse(trainingResponse);
-
+                        Log.d(TAG, "trarespo " + trainingResponse.toString());//// TODO: 5/29/2016 geçicisil
                         // counter++;
                         runOnUiThread(new Runnable() {
                             @Override
@@ -858,15 +894,13 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                                     dbHandler.setTrainingCompletedAll(trainingID);
                                     if (!CheckNetwork.isOnline(MatchingGame.this)) {
                                         Log.d(TAG, "MatchingGame no db no wifi, checknetworktrue");
-                                        CheckNetwork.showNoConnectionDialog(MatchingGame.this, false); //display dialog
+                                        CheckNetwork.showNoConnectionDialog(MatchingGame.this, false, 2); //display dialog
                                     } else {
-                                        new CreateTrainingResponse(MatchingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
-                                        //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
-                                        //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
+                                        new CreateTrainingResponse(MatchingGame.this, false, username).execute(trainingID);
                                         Intent intent = new Intent(MatchingGame.this, MainActivity.class);
                                         intent.putExtra("username", username);
-                                        //   startActivity(intent);
-                                        // finish();
+                                        //startActivity(intent);
+                                        //finish();
                                     }
                                 }
                             }
@@ -877,12 +911,13 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                     else{
                         if(!isNextLevelToGo){
                             isNextLevelToGo = true;
-                            //bu durumda 1 kez tiklanmistir yanlis. //// TODO: 5/20/2016 positive ver sonra reset
+                            //bu durumda 1 kez tiklanmistir yanlis.
                             thread.interrupt();
                             isImageDragged = true;
 
                             currentDate = new Date();
 
+                            trainingResponse.setAnswerTwoObjectID(trainingObject.getTrainingobjectAnswer());
                             trainingResponse.setTrainingResponseScore(HALF_SCORE);
                             trainingResponse.setTrainingResponseFinishTime(String.valueOf(currentDate.getTime() / 1000));
                             dbHandler.addTrainingResponse(trainingResponse);
@@ -898,15 +933,13 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                                         dbHandler.setTrainingCompletedAll(trainingID);
                                         if (!CheckNetwork.isOnline(MatchingGame.this)) {
                                             Log.d(TAG, "MatchingGame no db no wifi, checknetworktrue");
-                                            CheckNetwork.showNoConnectionDialog(MatchingGame.this, false); //display dialog
+                                            CheckNetwork.showNoConnectionDialog(MatchingGame.this, false, 2); //display dialog
                                         } else {
-                                            new CreateTrainingResponse(MatchingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
-                                            //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
-                                            //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
+                                            new CreateTrainingResponse(MatchingGame.this, false, username).execute(trainingID);
                                             Intent intent = new Intent(MatchingGame.this, MainActivity.class);
                                             intent.putExtra("username", username);
-                                            //   startActivity(intent);
-                                            // finish();
+                                            //startActivity(intent);
+                                            //finish();
                                         }
                                     }
                                 }
@@ -916,15 +949,16 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                     return true;
                 }
                 else{
-                    Log.d(TAG,"false "+dropOntoImg.getTag()+" droppeged true with dragged"+ draggedImageView.getTag() + "");
+                    Log.d(TAG,"false*** "+dropOntoImg.getTag()+" droppeged true with dragged"+ draggedImageView.getTag() + "");
 
                     if(!isNextLevelToGo && !isImageDragged){
                         //ilk yanlis cevabi
                         isImageDragged = true ;
+                        trainingResponse.setAnswerObjectID((Integer) dropOntoImg.getTag());
                         //isNextLevelToGo = false;
                         //  Log.d(TAG,counter+" nextlevel  counter:");
                         // thread.interrupt();
-                        //todo efekt
+
 
                         runOnUiThread(new Runnable() {
                             @Override
@@ -948,13 +982,13 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
 
                         // isNextLevelToGo = true;
                         //  counter++;
-                        //todo isclicked
+
 
                     }//if end
                     else{
                         if(!isNextLevelToGo){//2. kez yanlis cevap
                             isNextLevelToGo = true;
-                            //bu durumda 1 kez tiklanmistir yanlis. //// TODO: 5/20/2016 negative ver sonra reset
+                            //bu durumda 1 kez tiklanmistir yanlis.
 
                             thread.interrupt();
                             isNextLevelToGo = true;
@@ -962,6 +996,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
 
                             currentDate = new Date();
 
+                            trainingResponse.setAnswerTwoObjectID((Integer) dropOntoImg.getTag());
                             trainingResponse.setTrainingResponseScore(NEGATIVE_SCORE);
                             trainingResponse.setTrainingResponseFinishTime(String.valueOf(currentDate.getTime() / 1000));
                             dbHandler.addTrainingResponse(trainingResponse);
@@ -977,14 +1012,12 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                                         dbHandler.setTrainingCompletedAll(trainingID);
                                         if (!CheckNetwork.isOnline(MatchingGame.this)) {
                                             Log.d(TAG, "MatchingGame no db no wifi, checknetworktrue");
-                                            CheckNetwork.showNoConnectionDialog(MatchingGame.this, false); //display dialog
+                                            CheckNetwork.showNoConnectionDialog(MatchingGame.this, false, 2); //display dialog
                                         } else {
-                                            new CreateTrainingResponse(MatchingGame.this, false).execute(trainingID);//// TODO: 5/18/2016 async taska sadece trainid yolluyorum,orda cekecek responselari.aynı
-                                            //// TODO: 5/18/2016 id ile baska olamaz, dogru seyi cekecektir
-                                            //// TODO: 5/18/2016 ya bizimkin degil de baska bir tablette oyunu bitirdiyse ama bizim localde hala egitim gözküyorsa
+                                            new CreateTrainingResponse(MatchingGame.this, false, username).execute(trainingID);
                                             Intent intent = new Intent(MatchingGame.this, MainActivity.class);
                                             intent.putExtra("username", username);
-                                            // startActivity(intent);
+                                            //startActivity(intent);
                                             //finish();
                                         }
                                     }
@@ -996,6 +1029,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
                     return false;
                 }
 
+                //dogdru sürukleyince obur levele geciyor. yanlissa  görünr yapiyor burda
             case DragEvent.ACTION_DRAG_ENDED:
                 Log.d(TAG, "drag action ended");
                 Log.d(TAG, "getResult: " + dragEvent.getResult());
@@ -1026,7 +1060,7 @@ Log.d(TAG,"objrsponse: "+objectResponse.toString());//// TODO: 5/22/2016 geçici
 
 
 
-
+//// TODO: 5/31/2016 onpause vs yok 
 
 
 

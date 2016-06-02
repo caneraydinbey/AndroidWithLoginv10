@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <!---->
+    <ImageView
+    android:id="@+id/background_img"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:scaleType="centerCrop"
+    />
+
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,17 +24,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:id="@+id/main_rlayout"
     tools:context=".MainActivity">
-
-   <!-- <ImageView
-        android:id="@+id/middle"
-        android:layout_width="wrap_content"    android:orientation="horizontal"
-        android:layout_height="wrap_content"
-
-        android:src="@drawable/b3_1"
-        android:layout_centerInParent="true"
-        />-->
-
 
     <TextView
         android:id="@+id/text_main"
@@ -29,7 +36,8 @@
         android:layout_centerVertical="true"
         android:text="Main Screen"
         android:textAlignment="center"
-        android:textSize="35dp" />
+        android:textSize="55dp"
+        android:textColor="@color/abc_search_url_text_selected" />
 
     <TextView
         android:id="@+id/text_uncompleted_trainings"
@@ -65,8 +73,6 @@
         />
     </LinearLayout>
     </ScrollView>
-
-
 
    <TextView
     android:id="@+id/text_half_completed_trainings"
@@ -104,6 +110,18 @@
 
     </LinearLayout>
     </ScrollView>
+
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:id="@+id/settings_imgbtn"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/ic_settings"
+        />
+
+
 
 
     <!--
@@ -148,3 +166,4 @@
             android:textSize="18dp" />
     -->
 </RelativeLayout>
+    </RelativeLayout>
