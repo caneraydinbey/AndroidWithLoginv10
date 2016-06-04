@@ -154,6 +154,11 @@ public class LoginActivity extends Activity {
         super.onCreate(savedInstanceState);
         dbHandler = new DatabaseHandler(this);//islemler icin gerekiyor onceden almak
 
+       // Intent intent = new Intent(LoginActivity.this, ShowTableResults.class);//// TODO: 6/4/2016 gecicisil
+        //intent.putExtra("username", "t");
+        //startActivity(intent);//finish yok cunku geri gelecek
+        //finish();
+
         //geçici bu sil sonra//todo sil burayi
        // Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         // startActivity(intent);

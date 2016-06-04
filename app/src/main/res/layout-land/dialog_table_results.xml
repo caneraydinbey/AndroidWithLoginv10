@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:id="@+id/relative_table_results"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:id="@+id/home_imgbtn"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/ic_home"
+        />
+
+
+    <ScrollView
+        android:layout_below="@id/home_imgbtn"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp">
+
+    <TableLayout
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+        android:id="@+id/dialog_table_results">
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:divider="#170404"
+        android:dividerPadding="@dimen/abc_button_inset_horizontal_material"
+        android:weightSum="1">
+
+        <TextView
+            android:text=""
+            android:layout_weight="0.16"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:textIsSelectable="false"
+            android:textSize="25dp" />
+        <TextView
+            android:text="@string/matching"
+
+            android:layout_weight="0.28"
+            android:layout_width="0dp"
+            android:textAlignment="center"
+            android:layout_height="wrap_content"
+            android:background="#f9f6f6"
+            android:textColor="#0b3cdc"
+            android:textIsSelectable="false"
+            android:textSize="25dp" />
+
+        <TextView
+            android:text="@string/counting"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"  android:textAlignment="center"
+            android:layout_weight="0.28"
+            android:background="#f9f6f6"
+            android:textColor="#0b3cdc"
+            android:textIsSelectable="false"
+            android:textSize="25dp" />
+
+        <TextView
+            android:text="@string/choosing"
+            android:layout_width="0dp"  android:textAlignment="center"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.28"
+            android:background="#f9f6f6"
+            android:textColor="#0b3cdc"
+            android:textIsSelectable="false"
+            android:textSize="25dp" />
+
+    </TableRow>
+
+
+
+
+    <TableRow
+        android:id="@+id/subheaderrow"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:weightSum="1"
+        android:divider="#f6ec2f"
+        android:dividerPadding="@dimen/abc_action_bar_subtitle_bottom_margin_material">
+
+
+        <TextView android:textAlignment="center"
+            android:text="NESNE ADI"
+            android:layout_weight="0.16"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="#1dc05e"
+            android:textColor="#b21b1b"
+            android:textSize="15dp" />
+
+        <TextView android:textAlignment="center"
+            android:text="@string/trueanswer" android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.093"
+            android:textColor="#f4f4ed"
+            android:background="#a7067c"
+            android:textSize="15dp" />
+
+        <TextView android:textAlignment="center"
+            android:text="@string/halfanswer" android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.093"
+            android:textColor="#f4f4ed"
+            android:background="#a7067c"
+            android:textSize="15dp" />
+
+        <TextView android:textAlignment="center"
+            android:text="@string/wronganswer" android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.093"
+            android:textColor="#f4f4ed"
+            android:background="#a7067c"
+            android:textSize="15dp" />
+
+        <TextView android:textAlignment="center"
+            android:text="@string/trueanswer" android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.093"
+            android:textColor="#f4f4ed"
+            android:background="#a7067c"
+            android:textSize="15dp" />
+
+        <TextView android:textAlignment="center"
+            android:text="@string/halfanswer" android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.093"
+            android:textColor="#f4f4ed"
+            android:background="#a7067c"
+            android:textSize="15dp" />
+
+        <TextView android:textAlignment="center"
+            android:text="@string/wronganswer" android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.093"
+            android:textColor="#f4f4ed"
+            android:background="#a7067c"
+            android:textSize="15dp" />
+
+        <TextView android:textAlignment="center"
+            android:text="@string/trueanswer" android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.093"
+            android:textColor="#f4f4ed"
+            android:background="#a7067c"
+            android:textSize="15dp" />
+
+        <TextView android:textAlignment="center"
+            android:text="@string/halfanswer" android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.093"
+            android:textColor="#f4f4ed"
+            android:background="#a7067c"
+            android:textSize="15dp" />
+
+        <TextView android:textAlignment="center"
+            android:text="@string/wronganswer" android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.093"
+            android:textColor="#f4f4ed"
+            android:background="#a7067c"
+            android:textSize="15dp" />
+
+
+    </TableRow>
+
+
+
+</TableLayout>
+    </ScrollView>
+    </RelativeLayout>

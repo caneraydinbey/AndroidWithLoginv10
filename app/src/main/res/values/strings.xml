@@ -13,4 +13,12 @@
     <string name="Role">Not assigned</string>
     <string name="method">Login Method</string>
     <string name="Choose">Choose Method</string>
+    <string name="choosing">SECME</string>
+    <string name="matching">ESLEME</string>
+    <string name="counting">SAYMA</string>
+    <string name="trueanswer">DOGRU</string>
+    <string name="halfanswer">YARIM</string>
+    <string name="wronganswer">YANLIS</string>
+
+
 </resources>

@@ -17,16 +17,22 @@ import com.example.caneraydin.androidwithlogin.domains.TrainingResponse;
 import com.example.caneraydin.androidwithlogin.domains.TrainingSet;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by caneraydin on 23.04.2016.
  */
+
+//behaviourid 3 = surukleme
+    //1 seçme
+    //2 sayma
+
 public class DatabaseHandler extends SQLiteOpenHelper {
     //// TODO: 30.04.2016 basharfleri kucult
     // All Static variables
     // Database Version
-    private static final int DATABASE_VERSION = 239;
+    private static final int DATABASE_VERSION = 240;
     private String TAG = "Chic";
 
     // Database Name
@@ -114,7 +120,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        Log.d(TAG, "dbhandler construct");
+        Log.v(TAG, "dbhandler construct");
     }
 
 /*    public DatabaseHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
@@ -204,7 +210,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
-        Log.d(TAG, "dbhandler onupgrade");
+        Log.v(TAG, "dbhandler onupgrade");
         // Drop older table if existed
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_OBJECT);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRAINING);
@@ -305,7 +311,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     //adding new trainingresponse
     public void addTrainingResponse(TrainingResponse trainingResponse) {
-        //Log.d(TAG,"addtrainingresponse");
+        //Log.v(TAG,"addtrainingresponse");
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -400,12 +406,49 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding object to list
                 objectList.add(object);
-                //  Log.d(TAG,object.toString());//gecici bu//// TODO: 5/27/2016 sil
+                //  Log.v(TAG,object.toString());//gecici bu//// TODO: 5/27/2016 sil
             } while (cursor.moveToNext());
         }
 
         // return object list
         return objectList;
+    }
+
+    // Getting All ObjectObjects
+    public List<String> getAllObjectObjectName(String username) {
+        List<String> objectNameList = new ArrayList<String>();
+
+        // Select All Query
+        String selectQuery = "SELECT  distinct " +KEY_OBJECT_NAME+
+                " FROM " +
+                TABLE_OBJECT+" , "+
+                TABLE_TRAINING_RESPONSE+", "+
+                TABLE_TRAINING_OBJECT+
+                " WHERE "+
+                KEY_OBJECT_ID + "="+KEY_TRAINING_OBJECT_ANSWER+" AND "+
+                KEY_TRAINING_OBJECT_ID+" = "+KEY_QUESTION_OBJECT_ID+" AND "+
+                KEY_STUDENT_USERNAME+" = '"+username+"'";
+
+/*        SELECT distinct objectname from object,trainingobject,trainingresponse
+        where objectid = trainingobjectanswer
+        and trainingobjectid =`questionObjectID`
+        and studentid=15
+        */
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+
+                objectNameList.add(cursor.getString(0));
+                  Log.v(TAG,"getAllObjectObjectName: "+cursor.getString(0).toString());//gecici bu//// TODO: 5/27/2016 sil
+            } while (cursor.moveToNext());
+        }
+
+        // return object list
+        return objectNameList;
     }
 
     // Getting All TrainingObjects
@@ -435,7 +478,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding trainingObject to list
                 trainingObjectList.add(trainingObject);
-                  Log.d(TAG,trainingObject.toString());//gecici bu//// TODO: 5/27/2016 sil
+                  Log.v(TAG,trainingObject.toString());//gecici bu//// TODO: 5/27/2016 sil
             } while (cursor.moveToNext());
         }
 
@@ -444,7 +487,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     // Getting All Trainings
-    public List<Training> getAllTraining(String username) {Log.d(TAG,"dbhandlergetalltrainingh");
+    public List<Training> getAllTraining(String username) {Log.v(TAG,"dbhandlergetalltrainingh");
         List<Training> trainingList = new ArrayList<Training>();
 
         // Select All Query
@@ -466,13 +509,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 training.setTrainingHood(cursor.getString(3));
                 training.setTrainingExplanation(cursor.getString(4));
                 training.setBehaviorID(Integer.parseInt(cursor.getString(5)));
-                training.setTrainingTotalQuestion(Integer.parseInt(cursor.getString(6)));//Log.d(TAG,"tra "+training.toString());
+                training.setTrainingTotalQuestion(Integer.parseInt(cursor.getString(6)));//Log.v(TAG,"tra "+training.toString());
                 training.setTrainingOK(Integer.parseInt(cursor.getString(7)));
                 training.setTrainingCreateTime(cursor.getString(8));
 
                 // Adding training to list
                 trainingList.add(training);
-                  Log.d(TAG,training.toString());//gecici bu
+                  Log.v(TAG,training.toString());//gecici bu
             } while (cursor.moveToNext());
         }
 
@@ -481,7 +524,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     // Getting Half Trainings
-    public List<Training> getHalfTraining(String username) {Log.d(TAG,"dbhandler *gethalf*");
+    public List<Training> getHalfTraining(String username) {Log.v(TAG,"dbhandler *gethalf*");
         List<Training> trainingList = new ArrayList<Training>();
 
         // Select All Query
@@ -508,12 +551,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding trainingresponse to list
                 //trainingResponseList.add(trainingResponse);
-                Log.d(TAG,"**"+trainingResponse.toString());//gecici bua
+                Log.v(TAG,"**"+trainingResponse.toString());//gecici bua
             } while (cursor.moveToNext());
         }*/
         // looping through all rows and adding to list
        if (cursor.moveToFirst()) {
-            do {//Log.d(TAG,(cursor.getString(0)));
+            do {//Log.v(TAG,(cursor.getString(0)));
                 Training training = new Training();
 
                 training.setTrainingID(Integer.parseInt(cursor.getString(0)));
@@ -522,13 +565,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 training.setTrainingHood(cursor.getString(3));
                 training.setTrainingExplanation(cursor.getString(4));
                 training.setBehaviorID(Integer.parseInt(cursor.getString(5)));
-                training.setTrainingTotalQuestion(Integer.parseInt(cursor.getString(6)));//Log.d(TAG,"tra "+training.toString());
+                training.setTrainingTotalQuestion(Integer.parseInt(cursor.getString(6)));//Log.v(TAG,"tra "+training.toString());
                 training.setTrainingOK(Integer.parseInt(cursor.getString(7)));
                 training.setTrainingCreateTime(cursor.getString(8));
 
                 // Adding training to list
                 trainingList.add(training);
-                  Log.d(TAG,training.toString());//gecici bu
+                  Log.v(TAG,training.toString());//gecici bu
                 getAllTrainingResponse();//// TODO: 5/20/2016 sil
             } while (cursor.moveToNext());
         }
@@ -559,7 +602,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding trainingset to list
                 trainingSetList.add(trainingSet);
-                // Log.d(TAG,trainingSet.toString());//gecici bu
+                // Log.v(TAG,trainingSet.toString());//gecici bu
             } while (cursor.moveToNext());
         }
 
@@ -570,7 +613,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     // Getting All Trainingresponses
     public List<TrainingResponse> getAllTrainingResponse() {
         List<TrainingResponse> trainingResponseList = new ArrayList<TrainingResponse>();
-        Log.d(TAG,"getAllTrainingResponse");
+        Log.v(TAG,"getAllTrainingResponse");
         // Select All Query
         String selectQuery = "SELECT  * FROM " + TABLE_TRAINING_RESPONSE;
         SQLiteDatabase db = this.getWritableDatabase();
@@ -586,17 +629,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 trainingResponse.setStudentUserName(cursor.getString(2));
                 trainingResponse.setQuestionObjectID(Integer.parseInt(cursor.getString(3)));
                 trainingResponse.setAnswerObjectID(Integer.parseInt(cursor.getString(4)));
-              //  if(!(cursor.getString(5).equals(null))){
-                trainingResponse.setTrainingResponseScore(Integer.parseInt(cursor.getString(5)));//}else Log.d(TAG,"null");
-                trainingResponse.setTrainingResponseFinishTime((cursor.getString(6)));
-                trainingResponse.setResponseSent(Integer.parseInt(cursor.getString(7)));
-                trainingResponse.setTrainingStarted(Integer.parseInt(cursor.getString(8)));
-                trainingResponse.setTrainingCompleted(Integer.parseInt(cursor.getString(9)));
+                //  if(!(cursor.getString(5).equals(null))){
+                trainingResponse.setAnswerTwoObjectID(Integer.parseInt(cursor.getString(5)));
+                trainingResponse.setTrainingResponseScore(Integer.parseInt(cursor.getString(6)));//}else Log.v(TAG,"null");
+                trainingResponse.setTrainingResponseFinishTime((cursor.getString(7)));
+                trainingResponse.setResponseSent(Integer.parseInt(cursor.getString(8)));
+                trainingResponse.setTrainingStarted(Integer.parseInt(cursor.getString(9)));
+                trainingResponse.setTrainingCompleted(Integer.parseInt(cursor.getString(10)));
 
 
                 // Adding trainingresponse to list
                 trainingResponseList.add(trainingResponse);
-                 // Log.d(TAG,trainingResponse.toString());//gecici bua
+                  Log.v(TAG,trainingResponse.toString());//gecici bua
             } while (cursor.moveToNext());
         }
 
@@ -605,7 +649,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     // Getting All Trainingresponses for single trainingid
     public List<TrainingResponse> getAllTrainingResponse(int trainingid) {
-        Log.d(TAG,"getAllTrainingResponse sfir gözükür digerleri tariningid:"+trainingid);
+        Log.v(TAG,"getAllTrainingResponse sfir gözükür digerleri tariningid:"+trainingid);
         List<TrainingResponse> trainingResponseList = new ArrayList<TrainingResponse>();
 
         // Select All Query
@@ -625,7 +669,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 trainingResponse.setAnswerObjectID(Integer.parseInt(cursor.getString(4)));
                 //  if(!(cursor.getString(5).equals(null))){
                 trainingResponse.setAnswerTwoObjectID(Integer.parseInt(cursor.getString(5)));
-                trainingResponse.setTrainingResponseScore(Integer.parseInt(cursor.getString(6)));//}else Log.d(TAG,"null");
+                trainingResponse.setTrainingResponseScore(Integer.parseInt(cursor.getString(6)));//}else Log.v(TAG,"null");
                 trainingResponse.setTrainingResponseFinishTime((cursor.getString(7)));
                 trainingResponse.setResponseSent(Integer.parseInt(cursor.getString(8)));
                 trainingResponse.setTrainingStarted(Integer.parseInt(cursor.getString(9)));
@@ -634,7 +678,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding trainingresponse to list
                 trainingResponseList.add(trainingResponse);
-                Log.d(TAG,trainingResponse.toString());//gecici bua
+                Log.v(TAG,trainingResponse.toString());//gecici bua
             } while (cursor.moveToNext());
         }
 
@@ -661,7 +705,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding color to list
                 colorList.add(color);
-                //  Log.d(TAG,color.toString());//gecici bu
+                //  Log.v(TAG,color.toString());//gecici bu
             } while (cursor.moveToNext());
         }
 
@@ -688,7 +732,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding shape to list
                 shapeList.add(shape);
-                // Log.d(TAG,shape.toString());//gecici bu
+                // Log.v(TAG,shape.toString());//gecici bu
             } while (cursor.moveToNext());
         }
 
@@ -725,7 +769,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding trainingObject to list
                 trainingObjectList.add(trainingObject);
-                 //  Log.d(TAG,trainingObject.toString());//gecici bu//// TODO: 5/27/2016 sil
+                 //  Log.v(TAG,trainingObject.toString());//gecici bu//// TODO: 5/27/2016 sil
             } while (cursor.moveToNext());
         }
 
@@ -753,7 +797,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding trainingObject to list
                 loginList.add(login);
-                 Log.d(TAG,login.toString());//gecici bu//// TODO: 5/27/2016 sil
+                 Log.v(TAG,login.toString());//gecici bu//// TODO: 5/27/2016 sil
             } while (cursor.moveToNext());
         }
 
@@ -1002,7 +1046,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             }
 
             //for test
-            //  Log.d(TAG,"obj: "+object.toString());
+            //  Log.v(TAG,"obj: "+object.toString());
             return object;
         } finally {
             cursor.close();
@@ -1014,7 +1058,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     //demo objects for each training
     public List<ObjectObject> getDemoObjectObject(int id) {
 
-        Log.d(TAG, "dbhandlergetDemoObjectObject");
+        Log.v(TAG, "dbhandlergetDemoObjectObject");
 
         List<ObjectObject> objectList = new ArrayList<ObjectObject>();
 
@@ -1041,12 +1085,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
                 // Adding object to list
                 objectList.add(object);
-                    //Log.d(TAG,object.toString());//gecici bu//// TODO: 5/27/2016 sil
+                    //Log.v(TAG,object.toString());//gecici bu//// TODO: 5/27/2016 sil
             } while (cursor.moveToNext());
         }
 
         // return object list
-        Log.d(TAG, "dbhandlergetDemoObjectObject end");
+        Log.v(TAG, "dbhandlergetDemoObjectObject end");
         return objectList;
     }
 
@@ -1062,7 +1106,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
 
-            //  Log.d(TAG,"Color name: "+cursor.getString(0)+" id="+id);
+            //  Log.v(TAG,"Color name: "+cursor.getString(0)+" id="+id);
 
             // return training list
             return cursor.getString(0);
@@ -1081,7 +1125,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
 
-            //  Log.d(TAG,"Color name: "+cursor.getString(0)+" id="+id);
+            //  Log.v(TAG,"Color name: "+cursor.getString(0)+" id="+id);
 
             // return training list
             return cursor.getString(0);
@@ -1100,7 +1144,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
 
-            // Log.d(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
+            // Log.v(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
 
             // return training list
             return cursor.getString(0);
@@ -1112,7 +1156,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 //to check sqlite is null or not
     public boolean ifDatabaseExists() {
 
-        Log.d(TAG,"dbhandlerifdbexists");
+        Log.v(TAG,"dbhandlerifdbexists");
 
         SQLiteDatabase db = this.getWritableDatabase();//object tablosuna bakiliyor bos olup olmadigi
         Cursor mCursor = db.rawQuery("SELECT * FROM " + TABLE_OBJECT, null);
@@ -1120,13 +1164,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     if(mCursor.moveToFirst())
     {
-        Log.d(TAG,"dbhandlerifdbexists true");
+        Log.v(TAG,"dbhandlerifdbexists true");
         dbExists = true;
     }
 
     else
     {
-        Log.d(TAG,"dbhandlerifdbexists false");
+        Log.v(TAG,"dbhandlerifdbexists false");
         dbExists = false;
     }
 
@@ -1137,7 +1181,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 //todo yanlis bu galiba
     public boolean ifNewTrainingsExists() {
 
-        Log.d(TAG,"dbhandlerifnewtrainingexists");
+        Log.v(TAG,"dbhandlerifnewtrainingexists");
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor mCursor = db.rawQuery("SELECT * FROM " + DATABASE_NAME, null);
@@ -1145,13 +1189,13 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         if(mCursor.moveToFirst())
         {
-            Log.d(TAG,"dbhandlerifnewtrainingexists true");
+            Log.v(TAG,"dbhandlerifnewtrainingexists true");
             trainingExists = true;
     }
 
         else
         {
-            Log.d(TAG,"dbhandlerifnewtrainingexists false");
+            Log.v(TAG,"dbhandlerifnewtrainingexists false");
             trainingExists = false;
         }
 
@@ -1168,14 +1212,14 @@ public int getCurrentLevel(int trainingID){
     String countQuery = "SELECT " + KEY_TRAINING_RESPONSE_SCORE+" FROM "+TABLE_TRAINING_RESPONSE+" WHERE "+KEY_TRAINING_ID+" = "+trainingID;
     db = this.getReadableDatabase();
     Cursor  cursor = db.rawQuery(countQuery, null);
-    Log.d(TAG,"dbhandlergetlevel : "+cursor.getCount());//todo sill)
+    Log.v(TAG,"dbhandlergetlevel : "+cursor.getCount());//todo sill)
     return cursor.getCount();
 }
 
     /***************************************************************************************************/
     //training completed so set completed 1 for all//todo need to check - calisiyor gibi
     public void setTrainingCompletedAll(int trainingID){
-        Log.d(TAG,"dbhandler settrainingcopmpleted");
+        Log.v(TAG,"dbhandler settrainingcopmpleted");
         //getAllTrainingResponse();
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -1193,7 +1237,7 @@ public int getCurrentLevel(int trainingID){
     /***************************************************************************************************/
     //mark all trainings sent
     public void setTrainingSent(int trainingID){//todo need to check
-        Log.d(TAG,"dbhandler settrainingset");
+        Log.v(TAG,"dbhandler settrainingset");
 
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -1212,7 +1256,7 @@ public int getCurrentLevel(int trainingID){
     /***************************************************************************************************/
 
     public List<Integer> getUnsendResponseTrainingIDs(){//// TODO: 5/19/2016 need check
-        Log.d(TAG,"dbhandler getUnsendResponses");
+        Log.v(TAG,"dbhandler getUnsendResponses");
         List<Integer> unsendResponseTrainingIDs = new ArrayList<>();
 
         String selectQuery =  "SELECT DISTINCT "+KEY_TRAINING_ID+" FROM "+TABLE_TRAINING_RESPONSE+" WHERE "+KEY_TRAINING_STARTED+" = 1 "+"AND "
@@ -1224,7 +1268,7 @@ public int getCurrentLevel(int trainingID){
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
 
-            // Log.d(TAG,"dbhandler getUnsendResponses trainnigid: "+cursor.getString(0));
+            // Log.v(TAG,"dbhandler getUnsendResponses trainnigid: "+cursor.getString(0));
 
             // return training list
             unsendResponseTrainingIDs.add(Integer.parseInt(cursor.getString(0)));
@@ -1247,11 +1291,11 @@ String aim = null;
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
 
-            // Log.d(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
+            // Log.v(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
 
             // return training list
             aim = cursor.getString(0);
-            Log.d(TAG, "getTrainingAim aim: " + aim);//// TODO: 5/21/2016 sil gecici
+            Log.v(TAG, "getTrainingAim aim: " + aim);//// TODO: 5/21/2016 sil gecici
             if(aim.contains("enk")){
                 return 1;//// gerek kalmadı T ODO: 5/21/2016 sayma gelince ekle
             }
@@ -1262,7 +1306,7 @@ String aim = null;
             }
         }
         else{
-            Log.d(TAG,"getTrainingAim error");
+            Log.v(TAG,"getTrainingAim error");
             }
        return -1;
     }
@@ -1279,15 +1323,15 @@ String aim = null;
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
 
-            // Log.d(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
+            // Log.v(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
 
             // return training list
             read = Integer.parseInt(cursor.getString(0));
-            Log.d(TAG, "getTrainingnameread read: " + read);//// TODO: 5/21/2016 sil gecici
+            Log.v(TAG, "getTrainingnameread read: " + read);//// TODO: 5/21/2016 sil gecici
 
             return read;
         } else {
-            Log.d(TAG, "getTrainingnameread error");
+            Log.v(TAG, "getTrainingnameread error");
             return 0;
         }
     }
@@ -1304,15 +1348,15 @@ String aim = null;
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
 
-            // Log.d(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
+            // Log.v(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
 
             // return training list
             read = Integer.parseInt(cursor.getString(0));
-            Log.d(TAG, "getTrainingcountread read: " + read);//// TODO: 5/21/2016 sil gecici
+            Log.v(TAG, "getTrainingcountread read: " + read);//// TODO: 5/21/2016 sil gecici
 
             return read;
         } else {
-            Log.d(TAG, "getTrainingcountread error");
+            Log.v(TAG, "getTrainingcountread error");
             return 0;
         }
     }
@@ -1329,15 +1373,15 @@ String aim = null;
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
 
-            // Log.d(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
+            // Log.v(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
 
             // return training list
             read = Integer.parseInt(cursor.getString(0));
-            Log.d(TAG, "getTrainingshaperead read: " + read);//// TODO: 5/21/2016 sil gecici
+            Log.v(TAG, "getTrainingshaperead read: " + read);//// TODO: 5/21/2016 sil gecici
 
             return read;
         } else {
-            Log.d(TAG, "getTrainingshaperead error");
+            Log.v(TAG, "getTrainingshaperead error");
             return 0;
         }
     }
@@ -1354,15 +1398,15 @@ String aim = null;
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
 
-            // Log.d(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
+            // Log.v(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
 
             // return training list
             read = Integer.parseInt(cursor.getString(0));
-            Log.d(TAG, "getTrainingcolorread read: " + read);//// TODO: 5/21/2016 sil gecici
+            Log.v(TAG, "getTrainingcolorread read: " + read);//// TODO: 5/21/2016 sil gecici
 
             return read;
         } else {
-            Log.d(TAG, "getTrainingcolorread error");
+            Log.v(TAG, "getTrainingcolorread error");
             return 0;
         }
     }
@@ -1389,15 +1433,15 @@ String aim = null;
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
 
-            // Log.d(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
+            // Log.v(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
 
             // return training list
             lastTrainingSetUpdate = cursor.getString(0);
-            Log.d(TAG, "getLastTrainingSetUpdate: " + lastTrainingSetUpdate);//// TODO: 5/21/2016 sil gecici
+            Log.v(TAG, "getLastTrainingSetUpdate: " + lastTrainingSetUpdate);//// TODO: 5/21/2016 sil gecici
 
             return lastTrainingSetUpdate;
         } else {
-            Log.d(TAG, "getLastTrainingSetUpdate error");
+            Log.v(TAG, "getLastTrainingSetUpdate error");
             return null;
         }
     }
@@ -1419,15 +1463,15 @@ String aim = null;
             // looping through all rows and adding to list
             if (cursor.moveToFirst()) {
 
-                // Log.d(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
+                // Log.v(TAG,"SHAPE name: "+cursor.getString(0)+" id="+id);
 
                 // return training list
                 LastObjectUpdate = cursor.getString(0);
-                Log.d(TAG, "getLastObjectUpdate: " + LastObjectUpdate);//// TODO: 5/21/2016 sil gecici
+                Log.v(TAG, "getLastObjectUpdate: " + LastObjectUpdate);//// TODO: 5/21/2016 sil gecici
 
                 return LastObjectUpdate;
             } else {
-                Log.d(TAG, "getLastObjectUpdate error");
+                Log.v(TAG, "getLastObjectUpdate error");
                 return null;
             }
         }
@@ -1440,7 +1484,7 @@ public int isLoginSuccessful(Login login) {
     //1= wrong password
     //0= no data go online
 
-    Log.d(TAG, "DBHANDLER isloginsuccesful loginname=" + login.getLoginName() + " psw=" + login.getLoginPassword());//// TODO: 6/2/2016 gecici sil
+    Log.v(TAG, "DBHANDLER isloginsuccesful loginname=" + login.getLoginName() + " psw=" + login.getLoginPassword());//// TODO: 6/2/2016 gecici sil
 getAllLogin();//// TODO: 6/2/2016 gecici sil
 
     String selectQuery = "SELECT " + KEY_LOGIN_PASSWORD + " FROM " + TABLE_LOGIN + " WHERE " + KEY_LOGIN_NAME + "='" + login.getLoginName()+"'";
@@ -1450,19 +1494,19 @@ getAllLogin();//// TODO: 6/2/2016 gecici sil
 
     if (cursor.moveToFirst()) {//varsa
 
-        Log.d(TAG, "DBHANDLER isloginsuccesful not null");
+        Log.v(TAG, "DBHANDLER isloginsuccesful not null");
 
         if (login.getLoginPassword().equals(cursor.getString(0))) {
             return 2;
         }
         else{
-            Log.d(TAG, "DBHANDLER isloginsuccesful false will return 1 cursorgetpasw=" + cursor.getString(0));//Todo gecicisil burdakileri
+            Log.v(TAG, "DBHANDLER isloginsuccesful false will return 1 cursorgetpasw=" + cursor.getString(0));//Todo gecicisil burdakileri
             return 1;
         }
 
     }
     else{
-       // Log.d(TAG, "DBHANDLER isloginsuccesful return 0 cursorgetpasw=" + cursor.getString(0));//Todo gecicisil burdakileri
+       // Log.v(TAG, "DBHANDLER isloginsuccesful return 0 cursorgetpasw=" + cursor.getString(0));//Todo gecicisil burdakileri
         return 0;
     }
 
@@ -1471,7 +1515,7 @@ getAllLogin();//// TODO: 6/2/2016 gecici sil
 public String isLoginRemember(){
 //username döndürüyor ki maine gitsin
 
-    Log.d(TAG, "DBHANDLER is loginremember");
+    Log.v(TAG, "DBHANDLER is loginremember");
 
         String selectQuery = "SELECT " + KEY_LOGIN_NAME+","+KEY_LOGIN_PASSWORD + " FROM " + TABLE_LOGIN + " WHERE "+KEY_LOGIN_REMEMBER+"="+1;
 
@@ -1487,7 +1531,7 @@ public String isLoginRemember(){
          //   login.setLoginPassword(String.valueOf(Integer.parseInt(cursor.getString(1))));
           //  login.setLoginRemember(1);
 
-            Log.d(TAG, "DBHANDLER isLoginRememberw=" + cursor.getString(1));//Todo gecicisil burdakileri
+            Log.v(TAG, "DBHANDLER isLoginRememberw=" + cursor.getString(1));//Todo gecicisil burdakileri
 
             return (cursor.getString(0));
         }
@@ -1523,11 +1567,445 @@ public String isLoginRemember(){
         }
 
 
+ /*   *//***************************************************************************************************//*
+//st = shape, true
+public HashMap<String,Integer> getSTResults(String studentUserName) {
+
+    // Select shapename count response 2
+    SQLiteDatabase db = this.getWritableDatabase();
+
+    String selectQuery =
+            "SELECT " +
+                    KEY_SHAPE_NAME +
+                    ",count(" + KEY_SHAPE_NAME + ")" +
+
+                    "FROM " + TABLE_TRAINING_RESPONSE + "," +
+                    TABLE_OBJECT + " o," +
+                    TABLE_TRAINING_OBJECT + "," +
+                    TABLE_SHAPE + " s"
+
+                    + " WHERE " +
+                    KEY_STUDENT_USERNAME + "='" + studentUserName +"'"+
+                    " AND " + KEY_OBJECT_ID + " = " + KEY_TRAINING_OBJECT_ANSWER +
+                    " AND " + KEY_QUESTION_OBJECT_ID + " = " + KEY_TRAINING_OBJECT_ID +
+                    " AND s." + KEY_SHAPE_ID + " = O." + KEY_SHAPE_ID +
+                    " AND " + KEY_TRAINING_RESPONSE_SCORE + " = " + 2 +
+                    "  GROUP BY " + KEY_SHAPE_NAME;
+
+    Cursor cursor = db.rawQuery(selectQuery, null);
+
+    HashMap<String, Integer> resultsHashMap = new HashMap<String, Integer>();
+
+    // looping through all rows and adding to list
+    if (cursor.moveToFirst()) {
+        do {
+
+            resultsHashMap.put(cursor.getString(0), Integer.valueOf(cursor.getString(1)));
+
+            Log.v(TAG, resultsHashMap.toString());//gecici bua //// TODO: 6/3/2016
+        } while (cursor.moveToNext());
+    }
+
+    return resultsHashMap;
+}
+
+//sf = shape, false
+    public HashMap<String,Integer> getSFResults(String studentUserName) {
+
+        // Select shapename count response 2
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String selectQuery =
+                "SELECT " +
+                        KEY_SHAPE_NAME +
+                        ",count(" + KEY_SHAPE_NAME + ")" +
+
+                        "FROM " + TABLE_TRAINING_RESPONSE + "," +
+                        TABLE_OBJECT + " o," +
+                        TABLE_TRAINING_OBJECT + "," +
+                        TABLE_SHAPE + " s"
+
+                        + " WHERE " +
+                        KEY_STUDENT_USERNAME + "='" + studentUserName +"'"+
+                        " AND " + KEY_OBJECT_ID + " = " + KEY_TRAINING_OBJECT_ANSWER +
+                        " AND " + KEY_QUESTION_OBJECT_ID + " = " + KEY_TRAINING_OBJECT_ID +
+                        " AND s." + KEY_SHAPE_ID + " = O." + KEY_SHAPE_ID +
+                        " AND " + KEY_TRAINING_RESPONSE_SCORE + " = " + 0 +
+                        "  GROUP BY " + KEY_SHAPE_NAME;
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        HashMap<String, Integer> resultsHashMap = new HashMap<String, Integer>();
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+
+                resultsHashMap.put(cursor.getString(0), Integer.valueOf(cursor.getString(1)));
+
+                Log.v(TAG, resultsHashMap.toString());//gecici bua //// TODO: 6/3/2016
+            } while (cursor.moveToNext());
+        }
+
+        return resultsHashMap;
+    }
+
+//sh = shape, halfture
+    public HashMap<String,Integer> getSHResults(String studentUserName) {
+
+        // Select shapename count response 2
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String selectQuery =
+                "SELECT " +
+                        KEY_SHAPE_NAME  +
+                        ",count(" + KEY_SHAPE_NAME + ")" +
+
+                        "FROM " + TABLE_TRAINING_RESPONSE + "," +
+                        TABLE_OBJECT + " o," +
+                        TABLE_TRAINING_OBJECT + "," +
+                        TABLE_SHAPE + " s"
+
+                        + " WHERE " +
+                        KEY_STUDENT_USERNAME + "='" + studentUserName +"'"+
+                        " AND " + KEY_OBJECT_ID + " = " + KEY_TRAINING_OBJECT_ANSWER +
+                        " AND " + KEY_QUESTION_OBJECT_ID + " = " + KEY_TRAINING_OBJECT_ID +
+                        " AND s." + KEY_SHAPE_ID + " = O." + KEY_SHAPE_ID +
+                        " AND " + KEY_TRAINING_RESPONSE_SCORE + " = " + 0 +
+                        "  GROUP BY " + KEY_SHAPE_NAME;
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        HashMap<String, Integer> resultsHashMap = new HashMap<String, Integer>();
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+
+                resultsHashMap.put(cursor.getString(0), Integer.valueOf(cursor.getString(1)));
+
+                Log.v(TAG, resultsHashMap.toString());//gecici bua //// TODO: 6/3/2016
+            } while (cursor.moveToNext());
+        }
+
+        return resultsHashMap;
+    }
+
+    //ct = shape, true
+    public HashMap<String,Integer> getCTResults(String studentUserName) {
+
+        // Select shapename count response 2
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String selectQuery =
+                "SELECT " +
+                        KEY_COLOR_NAME  +
+                        ",count(" + KEY_COLOR_NAME + ")" +
+
+                        "FROM " + TABLE_TRAINING_RESPONSE + "," +
+                        TABLE_OBJECT + " o," +
+                        TABLE_TRAINING_OBJECT + "," +
+                        TABLE_COLOR + " s"
+
+                        + " WHERE " +
+                        KEY_STUDENT_USERNAME + "='" + studentUserName +"'"+
+                        " AND " + KEY_OBJECT_ID + " = " + KEY_TRAINING_OBJECT_ANSWER +
+                        " AND " + KEY_QUESTION_OBJECT_ID + " = " + KEY_TRAINING_OBJECT_ID +
+                        " AND s." + KEY_COLOR_ID + " = O." + KEY_COLOR_ID +
+                        " AND " + KEY_TRAINING_RESPONSE_SCORE + " = " + 2 +
+                        "  GROUP BY " + KEY_COLOR_NAME;
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        HashMap<String, Integer> resultsHashMap = new HashMap<String, Integer>();
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+
+                resultsHashMap.put(cursor.getString(0), Integer.valueOf(cursor.getString(1)));
+
+                Log.v(TAG, resultsHashMap.toString());//gecici bua //// TODO: 6/3/2016
+            } while (cursor.moveToNext());
+        }
+
+        return resultsHashMap;
+    }
+
+    //cF = shape, FALSE
+    public HashMap<String,Integer> getCFResults(String studentUserName) {
+
+        // Select shapename count response 2
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String selectQuery =
+                "SELECT " +
+                        KEY_COLOR_NAME +
+                        ",count(" + KEY_COLOR_NAME + ")" +
+
+                        "FROM " + TABLE_TRAINING_RESPONSE + "," +
+                        TABLE_OBJECT + " o," +
+                        TABLE_TRAINING_OBJECT + "," +
+                        TABLE_COLOR + " s"
+
+                        + " WHERE " +
+                        KEY_STUDENT_USERNAME + "='" + studentUserName +"'"+
+                        " AND " + KEY_OBJECT_ID + " = " + KEY_TRAINING_OBJECT_ANSWER +
+                        " AND " + KEY_QUESTION_OBJECT_ID + " = " + KEY_TRAINING_OBJECT_ID +
+                        " AND s." + KEY_COLOR_ID + " = O." + KEY_COLOR_ID +
+                        " AND " + KEY_TRAINING_RESPONSE_SCORE + " = " + 0 +
+                        "  GROUP BY " + KEY_COLOR_NAME;
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        HashMap<String, Integer> resultsHashMap = new HashMap<String, Integer>();
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+
+                resultsHashMap.put(cursor.getString(0), Integer.valueOf(cursor.getString(1)));
+
+                Log.v(TAG, resultsHashMap.toString());//gecici bua //// TODO: 6/3/2016
+            } while (cursor.moveToNext());
+        }
+
+        return resultsHashMap;
+    }
+
+
+    //cH = shape, HALF FALSE
+    public HashMap<String,Integer> getCHResults(String studentUserName) {
+
+        // Select shapename count response 2
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String selectQuery =
+                "SELECT " +
+                        KEY_COLOR_NAME  +
+                        ",count(" + KEY_COLOR_NAME + ")" +
+
+                        "FROM " + TABLE_TRAINING_RESPONSE + "," +
+                        TABLE_OBJECT + " o," +
+                        TABLE_TRAINING_OBJECT + "," +
+                        TABLE_COLOR + " s"
+
+                        + " WHERE " +
+                        KEY_STUDENT_USERNAME + "='" + studentUserName +"'"+
+                        " AND " + KEY_OBJECT_ID + " = " + KEY_TRAINING_OBJECT_ANSWER +
+                        " AND " + KEY_QUESTION_OBJECT_ID + " = " + KEY_TRAINING_OBJECT_ID +
+                        " AND s." + KEY_COLOR_ID + " = O." + KEY_COLOR_ID +
+                        " AND " + KEY_TRAINING_RESPONSE_SCORE + " = " + 1 +
+                        "  GROUP BY " + KEY_COLOR_NAME;
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        HashMap<String, Integer> resultsHashMap = new HashMap<String, Integer>();
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+
+                resultsHashMap.put(cursor.getString(0), Integer.valueOf(cursor.getString(1)));
+
+                Log.v(TAG, resultsHashMap.toString());//gecici bua //// TODO: 6/3/2016
+            } while (cursor.moveToNext());
+        }
+
+        return resultsHashMap;
+    }*/
+
+
     /***************************************************************************************************/
 
+  /*  SELECT  `trainingResponseScore` , objectname, shapename, colorname,behaviorid,
+
+    COUNT( colorname ) , COUNT( shapename ) , COUNT( trainingresponsescore ) , COUNT( behaviorid )
+
+    FROM  `trainingresponse` tr, trainingobject, object o, shapetbl s, colortbl c, training t
+
+    WHERE (
+                    objectid = trainingobjectanswer
+                    AND trainingobjectid =  `questionObjectID`
+                    AND c.colorid = o.colorid
+                    AND t.trainingid = tr.trainingid
+            )
+    AND (
+            objectid = trainingobjectanswer
+            AND trainingobjectid =  `questionObjectID`
+            AND s.shapeid = o.shapeid
+            AND t.trainingid = tr.trainingid
+    )
+    group by colorname,shapename,behaviorid,trainingresponsescore
+    ORDER BY `s`.`shapeName` ASC*/
+
+    /*SELECT  `trainingResponseScore` , objectname, shapename, colorname, behaviorid
+
+    FROM  `trainingresponse` tr, trainingobject, object o, shapetbl s, colortbl c, training t
+    WHERE (
+                    objectid = trainingobjectanswer
+                    AND trainingobjectid =  `questionObjectID`
+                    AND c.colorid = o.colorid
+                    AND t.trainingid = tr.trainingid AND shapename =  'daire'
+                    AND colorname =  'beyaz'
+            )
+    AND (
+            objectid = trainingobjectanswer
+            AND trainingobjectid =  `questionObjectID`
+            AND s.shapeid = o.shapeid
+            AND t.trainingid = tr.trainingid AND shapename =  'daire'
+            AND colorname =  'beyaz'
+    )
+*/
+
+ /*   SELECT  `trainingResponseScore` , objectname, shapename, colorname, behaviorid
+
+    FROM  `trainingresponse` tr, trainingobject, object o, shapetbl s, colortbl c, training t
+            WHERE
+    objectid = trainingobjectanswer
+    AND trainingobjectid =  `questionObjectID`
+    AND t.trainingid = tr.trainingid
+    and objectname='üçgen'
+    and behaviorid=1
+    and trainingresponsescore=0
+    and c.colorid=o.colorid
+    and s.shapeid=o.shapeid
+*/
+
+    public int getCountForTable(int behaviorID, int responseScore, String objectName, String username ){
+
+    String countQuery =
+            "SELECT "+
+            KEY_TRAINING_RESPONSE_SCORE+
+
+            " FROM "+//Bir tane seciyorum cunku counttan alacagim sayisini, daha fazla isleme gerek yok
+       TABLE_TRAINING_RESPONSE+" tr,"+
+            TABLE_TRAINING_OBJECT+" ,"+
+            TABLE_OBJECT+" o,"+
+            TABLE_SHAPE+" s,"+
+            TABLE_COLOR+" c,"+
+            TABLE_TRAINING+" t"+
+
+            " WHERE "+
+                    KEY_OBJECT_ID +" = "+KEY_TRAINING_OBJECT_ANSWER+" AND "+
+                    KEY_TRAINING_OBJECT_ID+" = "+KEY_QUESTION_OBJECT_ID+" AND c."+
+                    KEY_COLOR_ID+" = o."+KEY_COLOR_ID+" AND s."+
+                    KEY_SHAPE_ID+" = o."+KEY_SHAPE_ID+" AND t."+
+                    KEY_TRAINING_ID+" = tr."+KEY_TRAINING_ID+" AND "+
+                    KEY_OBJECT_NAME+" = '"+objectName+"' AND "+
+                    KEY_STUDENT_USERNAME+" = '"+username+"' AND "+
+                    KEY_BEHAVIOR_ID+" = "+ behaviorID+" AND "+
+                    KEY_TRAINING_RESPONSE_SCORE+" = "+responseScore;
+
+    SQLiteDatabase db = this.getReadableDatabase();
+    Cursor cursor = db.rawQuery(countQuery, null);
+        Log.v(TAG,"COUNT=" +cursor.getCount()+" "+" = '"+objectName+"' AND "+ " = "+ behaviorID+" AND "+
+               " score= "+responseScore );
+    cursor.close();
 
 
-    /***************************************************************************************************/
+    // return count
+    return cursor.getCount();
+}
+
+
+ /*   SELECT  `trainingResponseScore` , objectname, shapename, colorname,behaviorid
+
+
+
+    FROM  `trainingresponse` tr, trainingobject, object o, shapetbl s, colortbl c, training t
+
+    WHERE (
+                    objectid = trainingobjectanswer
+                    AND trainingobjectid =  `questionObjectID`
+                    AND c.colorid = o.colorid
+                    AND t.trainingid = tr.trainingid
+                    and behaviorid=3
+                    and `trainingResponseScore`=2
+
+                    AND s.shapeid = o.shapeid
+            )
+    ORDER BY `tr`.`trainingResponseScore`  DESC*/
+
+    public int getTotalCountForTable(int behaviorID, int responseScore,  String username ){
+
+        String countQuery =
+                "SELECT "+
+                        KEY_TRAINING_RESPONSE_SCORE+
+
+                        " FROM "+//Bir tane seciyorum cunku counttan alacagim sayisini, daha fazla isleme gerek yok
+                        TABLE_TRAINING_RESPONSE+" tr,"+
+                        TABLE_TRAINING_OBJECT+" ,"+
+                        TABLE_OBJECT+" o,"+
+                        TABLE_SHAPE+" s,"+
+                        TABLE_COLOR+" c,"+
+                        TABLE_TRAINING+" t"+
+
+                        " WHERE "+
+                        KEY_OBJECT_ID +" = "+KEY_TRAINING_OBJECT_ANSWER+" AND "+
+                        KEY_TRAINING_OBJECT_ID+" = "+KEY_QUESTION_OBJECT_ID+" AND c."+
+                        KEY_COLOR_ID+" = o."+KEY_COLOR_ID+" AND s."+
+                        KEY_SHAPE_ID+" = o."+KEY_SHAPE_ID+" AND t."+
+                        KEY_TRAINING_ID+" = tr."+KEY_TRAINING_ID+" AND "+
+                      //  KEY_OBJECT_NAME+" = '"+objectName+"' AND "+
+                        KEY_STUDENT_USERNAME+" = '"+username+"' AND "+
+                        KEY_BEHAVIOR_ID+" = "+ behaviorID+" AND "+
+                        KEY_TRAINING_RESPONSE_SCORE+" = "+responseScore;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(countQuery, null);
+        Log.v(TAG,"COUNT=" +cursor.getCount()+" "+"' AND "+ " = "+ behaviorID+" AND "+
+                " score= "+responseScore );
+        Log.d(TAG,countQuery);
+        cursor.close();
+
+        // return count
+        return cursor.getCount();
+    }
+
+
+    public int getCounttForTable( ){
+
+        String countQuery =
+                "SELECT "+
+                        KEY_TRAINING_RESPONSE_SCORE+","+KEY_OBJECT_NAME+","+KEY_BEHAVIOR_ID+
+
+                        " FROM "+//Bir tane seciyorum cunku counttan alacagim sayisini, daha fazla isleme gerek yok
+                        TABLE_TRAINING_RESPONSE+" tr,"+
+                        TABLE_TRAINING_OBJECT+" ,"+
+                        TABLE_OBJECT+" o,"+
+                        TABLE_SHAPE+" s,"+
+                        TABLE_COLOR+" c,"+
+                        TABLE_TRAINING+" t"+
+
+                        " WHERE "+
+                        KEY_OBJECT_ID +" = "+KEY_TRAINING_OBJECT_ANSWER+" AND "+
+                        KEY_TRAINING_OBJECT_ID+" = "+KEY_QUESTION_OBJECT_ID+" AND c."+
+                        KEY_COLOR_ID+" = o."+KEY_COLOR_ID+" AND s."+
+                        KEY_SHAPE_ID+" = o."+KEY_SHAPE_ID+" AND t."+
+                        KEY_TRAINING_ID+" = tr."+KEY_TRAINING_ID;
+                     //   KEY_OBJECT_NAME+" = '"+objectName+"' AND "+
+                      //  KEY_STUDENT_USERNAME+" = '"+username+"' AND "+
+                       // KEY_BEHAVIOR_ID+" = "+ behaviorID+" AND "+
+                     //   KEY_TRAINING_RESPONSE_SCORE+" = "+responseScore;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(countQuery, null);
+        Log.v(TAG,"C="+cursor.getCount()+countQuery );
+        cursor.close();
+
+
+        // return count
+        return cursor.getCount();
+    }
+
+
+
+
+
+
+
+
 
 
 

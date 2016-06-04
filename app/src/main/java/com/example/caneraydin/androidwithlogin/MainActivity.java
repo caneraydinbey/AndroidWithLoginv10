@@ -2,25 +2,34 @@ package com.example.caneraydin.androidwithlogin;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.GridLayout;
 import android.widget.ImageView;
 
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.example.caneraydin.androidwithlogin.domains.ObjectObject;
 import com.example.caneraydin.androidwithlogin.domains.Training;
 import com.example.caneraydin.androidwithlogin.domains.TrainingResponse;
 import com.example.caneraydin.androidwithlogin.games.ChoosingGame;
@@ -30,6 +39,7 @@ import com.example.caneraydin.androidwithlogin.games.MatchingGame;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 //Todo geri tusuna basarsa login olmussa bu sayfaya geri gelecek.
@@ -61,6 +71,8 @@ public class MainActivity extends Activity {
     MediaPlayer mMediaPlayer;
 
     PopupMenu popup;
+
+    TableLayout resultsTable;
 
     private boolean getAllDBAsyncExecuted =false,//not twice execute
             checkDBUpdateAsyncExecuted = false,//not twice
@@ -258,40 +270,42 @@ public class MainActivity extends Activity {
 //// TODO: 25.04.2016 username name n si buyut 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG,"MAINACTIVITY oncreate");
+        Log.d(TAG, "MAINACTIVITY oncreate");
 //// TODO: database baglanacak 3 tablo icin cekecek verileri yeni olmayanlari.degistirme yok simdilik.jsonArray dönüştürücü de lazım. internet var mı diye sormali
         //sqlite database baglanip tarihe gore sıralayip onla karsılastricak. inner yerine baska class daha iyi. aysntask icin
         //önce createtimea bakacak yeni eklenen var mi diye.
 //burdan asynctask cagirilacak parametre olrak username ve lastupdate gömderilecek sqliteden cekilen.eger newtraining yazısı gelirse databasea kaydecek direk.
-     //   List<ObjectObject> objectList = new ArrayList<ObjectObject>();
+        //   List<ObjectObject> objectList = new ArrayList<ObjectObject>();
 //        objectList=    dbHandler.getAllObjectObject();
-       // for(int i=0;i<objectList.size();i++){
-          //  object = objectList.get(i);
-           // Picasso.with(getApplicationContext()).load(imageURL+object.getObjectImage()).into(target);
-           // Log.d(TAG, "picasso sonrası"+" objimg.: "+object.getObjectImage());
-       // }
+        // for(int i=0;i<objectList.size();i++){
+        //  object = objectList.get(i);
+        // Picasso.with(getApplicationContext()).load(imageURL+object.getObjectImage()).into(target);
+        // Log.d(TAG, "picasso sonrası"+" objimg.: "+object.getObjectImage());
+        // }
 
 //// TODO: 25.04.2016 lastupdate alinmasi lazim SQLitedan. güncellemek için
+
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
         username = getIntent().getExtras().getString("username");
         wasDbExisted = getIntent().getExtras().getBoolean("wasDbExisted");
 
         //sqlitedakiler guncel mi diye bakacak
-       // new CheckDatabaseUpdate(MainActivity.this, lastUpdate).execute(username);
+        // new CheckDatabaseUpdate(MainActivity.this, lastUpdate).execute(username);
         //// TODO: 28.04.2016 once database bosmu var mi kontrolu olmali. ilk kez mi aciyor
-        Log.d(TAG, "MAINACTIVITY OnCreate*************");
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+
+
         //ll = (LinearLayout) findViewById(R.id.linearlayoutleft);
         // sv = (ScrollView) findViewById(R.id.scrollviewleft);
-     //   new GetAllDatabase(MainActivity.this,ll).execute(username);
+        //   new GetAllDatabase(MainActivity.this,ll).execute(username);
 //// TODO: 5/15/2016 sil linearlayout yollamayi ve üsttek slash
 
         mMediaPlayer = new MediaPlayer();
 
         textMain = (TextView) findViewById(R.id.text_main);
-       textHalfCompletedGames = (TextView) findViewById(R.id.text_half_completed_trainings);
+        textHalfCompletedGames = (TextView) findViewById(R.id.text_half_completed_trainings);
         textUnCompletedGames = (TextView) findViewById(R.id.text_uncompleted_trainings);
-      //  textMatch = (TextView) findViewById(R.id.text_match);
+        //  textMatch = (TextView) findViewById(R.id.text_match);
         dbHandler = new DatabaseHandler(MainActivity.this);
 
         trainingList = new ArrayList<Training>();
@@ -302,22 +316,24 @@ public class MainActivity extends Activity {
 
 //dbHandler.getAllTrainingResponse();//// TODO: 5/25/2016 sil
 //dbHandler.getAllTraining("t");//// TODO: 5/25/2016 sil
- //  dbHandler.getAllObjectObject();     //// TODO: 5/25/2016 sil
-       // dbHandler.getAllTrainingObject();     //// TODO: 5/25/2016 sil
-      // Log.d(TAG,"LEVEL:"+ dbHandler.getCurrentLevel(86));
+        //  dbHandler.getAllObjectObject();     //// TODO: 5/25/2016 sil
+        // dbHandler.getAllTrainingObject();     //// TODO: 5/25/2016 sil
+        // Log.d(TAG,"LEVEL:"+ dbHandler.getCurrentLevel(86));
 
         textMain.setText("Hoşgeldin " + username);
 
 
         backgroundImg = new ImageView(this);
-        backgroundImg  = (ImageView) findViewById(R.id.background_img);
+        backgroundImg = (ImageView) findViewById(R.id.background_img);
 
-      //  GlideDrawableImageViewTarget ivTarget = new GlideDrawableImageViewTarget(ivImg);
+        //  GlideDrawableImageViewTarget ivTarget = new GlideDrawableImageViewTarget(ivImg);
         Glide.with(this)
                 .load(R.raw.gif_mainactivity) // The image you want to load
                 .crossFade()
                 .placeholder(R.drawable.img_mainactivity_background_placeholderimg) // The placeholder GIF.
                 .into(backgroundImg);
+
+        resultsTable = (TableLayout) findViewById(R.id.dialog_table_results);
 
         settingsMenuPopup = new ImageView(this);
         settingsMenuPopup = (ImageView) findViewById(R.id.settings_imgbtn);
@@ -358,14 +374,14 @@ public class MainActivity extends Activity {
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     public boolean onMenuItemClick(MenuItem item) {
                         //Log.d(TAG, "you clciked " + item.getTitle() + " id=" + item.getItemId()+"   item.getGroupId():"+  item.getGroupId());//// TODO: 6/2/2016 sil buralari
-                        Log.d(TAG, "you clciked " + item.getTitle() + " id=" + item.getItemId()+" item:"+item.toString());
+                        Log.d(TAG, "you clciked " + item.getTitle() + " id=" + item.getItemId() + " item:" + item.toString());
 
-                        if(item.getTitle().toString().contains("onuc")){//sonuclarinizi gorunse
+                        if (item.getTitle().toString().contains("onuc")) {//sonuclarinizi gorunse
                             Log.d(TAG, "you clciked sonuc gör");
 
-                        }
-                        else
-                        {
+                            showPopupDialog();
+
+                        } else {
                             Log.d(TAG, "you clciked logout");
 
 
@@ -394,23 +410,7 @@ public class MainActivity extends Activity {
                                 }
                             });
                             builder.show();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                         }
-
                         return true;
                     }
                 });
@@ -419,163 +419,140 @@ public class MainActivity extends Activity {
 
             }
         }); //closing the setOnClickListener method
-
-
-
-
-
-
-
-
-
-
+    }
 
 //// TODO: 30.04.2016 once database ayarla sonra layout duzelt
-        //imageChoose = (ImageView) findViewById(R.id.img_choose);
-       // imageCount = (ImageView) findViewById(R.id.img_count);
-       // imageMatch = (ImageView) findViewById(R.id.img_match);
-
         //// TODO: 30.04.2016 if sqlite=nullsa alttakini cagir. ama ya baska kullanıcı girdiyse dolduduysa db ne olacak. bu ihtimali göz ardı ediyorum
-        
-        //// TODO: 5/27/2016 burayi block comment yaptim cünkü zaten resumede da aynisi var 
-          /*  if (!dbHandler.ifDatabaseExists()) {
-                Log.d(TAG, "main activity dbhandler dbexists false,getalldb will vbeexecuted");
-                if ( CheckNetwork.isOnline(this)) {
-                    if(!getAllDBAsyncExecuted) {
-                        getAllDBAsyncExecuted = true;
-                        new GetAllDatabase(MainActivity.this).execute(username);
-                    }
-                } else {
-                    CheckNetwork.showNoConnectionDialog(this,true);
-                }
-            }
-            //database exists but if there are new updates. burda cagiracak.
-            else {
-                if (CheckNetwork.isOnline(this)) {
-                    Log.d(TAG, "maindbhandler dbexists true isonline");
+        //// TODO: 5/27/2016 burayi block comment yaptim cünkü zaten resumede da aynisi var
                     // dbHandler.getUnsendResponseTrainingIDs();//// TODO: 5/19/2016 burda username atsak mi veritbanında baskasınızki var mıdır ki
-                    List<Integer> unsendResponseTrainingIDs = new ArrayList<>();
-                    unsendResponseTrainingIDs = dbHandler.getUnsendResponseTrainingIDs();
-
-                    if (unsendResponseTrainingIDs.size() > 0)//// TODO: 5/19/2016 burda username atsak mi veritbanında baskasınızki var mıdır ki
-                    {
-                        Log.d(TAG, "main dbhandler dbexists true size>0:"+unsendResponseTrainingIDs.size());
-                        for (int i = 0; i < unsendResponseTrainingIDs.size(); i++) {
-                            Log.d(TAG, "main dbhandler dbexists true size>0insidefor exevuting createtrainnigrsponse fortrainingid: "+unsendResponseTrainingIDs.get(i));
-                            if(!createTrainingResponseAsyncExecuted) {
-                                createTrainingResponseAsyncExecuted = true;//todo acaba checkdb baslsmis olabilri mi, nasil olur ki öyle
-                                new CreateTrainingResponse(MainActivity.this, true).execute(unsendResponseTrainingIDs.get(i));
-                            }
-                        }//for end
-                    } else {
-                        Log.d(TAG, "main dbhandler dbexists true size<0,");//// TODO: 5/22/2016 gecici bu else, sil
-                    }
-                    //  if(){
-                    
-                    //update trainings
-                    if(!createTrainingResponseAsyncExecuted) {//öbürü yapilmamissa yap
-                        if(!checkDBUpdateAsyncExecuted) {
-                            checkDBUpdateAsyncExecuted = true;
-                            new CheckDatabaseUpdate(MainActivity.this).execute(username, dbHandler.getLastTrainingSetUpdate());
-                        }
-                    }
-                } else {
-                    Log.d(TAG, "main dbexist no wifi,neednew updates check");
-                    CheckNetwork.showNoConnectionDialog(this,false);//// TODO: 5/25/2016 hic egitim yoksa kontrol lazim sanki
-                }
-                showTrainingsUI();
-            }*/
-
-
+                    // TODO: 5/19/2016 burda username atsak mi veritbanında baskasınızki var mıdır ki
+                       //todo acaba checkdb baslsmis olabilri mi, nasil olur ki öyle
+                               //// TODO: 5/22/2016 gecici bu else, sil
+                   // TODO: 5/25/2016 hic egitim yoksa kontrol lazim sanki
 //// TODO: 02.05.2016 halfcompelted yap-yapildi
 
-/*
-        for (int row = 0; row < 1; row++) {
-            RadioGroup ll = new RadioGroup(this);
-            ll.setOrientation(LinearLayout.VERTICAL);
+    private void showPopupDialog() {
 
-            for (int i = 1; i <= 5; i++) {
-                RadioButton rdbtn = new RadioButton(this);
-                rdbtn.setId((row * 2) + i);
-                rdbtn.setText("Radio " + rdbtn.getId());
-                //ll.addView(rdbtn);
-            }
-            //((ViewGroup) findViewById(R.id.radio_half_completed_games)).addView(ll);
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        // Get the layout inflater
+        LayoutInflater inflater = MainActivity.this.getLayoutInflater();
+        FragmentManager fm = getFragmentManager();
+        ResultsTableAlertDialog dialogFragment = new ResultsTableAlertDialog ();
+      //  dialogFragment.show(fm, "Sample Fragment");
+        // Inflate and set the layout for the dialog
+        // Pass null as the parent view because its going in the dialog layout
+
+
+/*
+        HashMap<String,Integer> CH = new HashMap<String, Integer>();
+        HashMap<String,Integer> CT = new HashMap<String, Integer>();
+        HashMap<String,Integer> CF = new HashMap<String, Integer>();
+        HashMap<String,Integer> SH = new HashMap<String, Integer>();
+        HashMap<String,Integer> SF = new HashMap<String, Integer>();
+        HashMap<String,Integer> ST = new HashMap<String, Integer>();
+
+        Log.d("")
+        for(int i=0 ; i<6 ; i++){
+
+        }
+        dbHandler.getCHResults(username);
+        dbHandler.getCTResults(username);
+        dbHandler.getCFResults(username);
+        dbHandler.getSFResults(username);
+        dbHandler.getSHResults(username);
+        dbHandler.getSTResults(username);
+*/
+
+
+
+/*
+        //1 match,3 secme, 2 count
+
+        List<String> objectNameList = new ArrayList<String>();
+
+        objectNameList = dbHandler.getAllObjectObjectName(username);
+
+//objectname
+for(int j=0; j<objectNameList.size() ; j++) {
+
+    TableRow table_row = new TableRow(this);
+    table_row = (TableRow) findViewById(R.id.table_row);
+
+
+    String objectName = objectNameList.get(j);
+
+    ((TextView)table_row.findViewById(R.id.object_name)).setText(objectName);
+
+    TextView [] textViewArray = new TextView[9];
+
+    TextView t1 = new TextView(this);
+    TextView t2 = new TextView(this);
+    TextView t3 = new TextView(this);
+    TextView t4 = new TextView(this);
+    TextView t5 = new TextView(this);
+    TextView t6 = new TextView(this);
+    TextView t7 = new TextView(this);
+    TextView t8 = new TextView(this);
+    TextView t9 = new TextView(this);
+
+    t1 = (TextView) findViewById(R.id.true_matching);
+    t2 = (TextView) findViewById(R.id.half_matching);
+    t3 = (TextView) findViewById(R.id.false_matching);
+
+    t4 = (TextView) findViewById(R.id.true_counting);
+    t5 = (TextView) findViewById(R.id.half_counting);
+    t6 = (TextView) findViewById(R.id.false_counting);
+
+    t7 = (TextView) findViewById(R.id.true_choosing);
+    t8 = (TextView) findViewById(R.id.half_choosing);
+    t9 = (TextView) findViewById(R.id.false_choosing);
+
+    textViewArray[1] = t1;
+            textViewArray[2] = t2;
+    textViewArray[3] = t3;
+            textViewArray[4] = t4;
+    textViewArray[5] = t5;
+            textViewArray[6] = t6;
+    textViewArray[7] = t7;
+            textViewArray[8] = t8;
+    textViewArray[9] = t9;
+
+
+    //behavor
+    for (int i = 1 ; i < 4; i++) {
+
+
+        //response
+        for(int k=1;k<4;k++){
+
+           textViewArray[i*3+k-3].setText(dbHandler.getCountForTable(i,k,objectName,username));
+
         }
 
-        for (int row = 0; row < 1; row++) {
-            RadioGroup ll = new RadioGroup(this);
-            ll.setOrientation(LinearLayout.VERTICAL);
 
-            for (int i = 1; i <= 111; i++) {
-                RadioButton rdbtn = new RadioButton(this);
-                rdbtn.setId((row * 2) + i);
-                rdbtn.setText("Radio " + rdbtn.getId());
-                ll.addView(rdbtn);
-            }
-          //  ((ViewGroup) findViewById(R.id.radio_uncompleted_games)).addView(ll);
-        }*/
-      /*  imageChoose.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "main activity imagechoose on click");
-                Intent intent = new Intent(MainActivity.this, ChoosingGame.class);
-               // startActivity(intent);
-            }
-        });
+    }
+    resultsTable.addView(table_row);
+    resultsTable.requestLayout();
+}
 
-        textChoose.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "main activity txtchoose on click");
-                Intent intent = new Intent(MainActivity.this, ChoosingGame.class);
-                //startActivity(intent);
-            }
-        });
+        builder.setView(inflater.inflate(R.layout.dialog_table_results, null));
+          builder.create();
+        //builder.show();
+        */
 
-        imageMatch.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "main activity imagematch on click");
-                Intent intent = new Intent(MainActivity.this, MatchingGame.class);
-              //  startActivity(intent);
-            }
-        });
+        Intent intent = new Intent(MainActivity.this, ShowTableResults.class);
+        intent.putExtra("username", username);
+        startActivity(intent);//finish yok cunku geri gelecek//// TODO: 6/4/2016 olmali mi
+}
 
-        textMatch.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "main activity txtmatch on click");
-                Intent intent = new Intent(MainActivity.this, MatchingGame.class);
-               // startActivity(intent);
-            }
-        });
 
-        imageCount.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "main activity imagecnt on click");
-                Intent intent = new Intent(MainActivity.this, CountingGame.class);
-               // startActivity(intent);
-            }
-        });
 
-        textCount.setOnClickListener(new View.OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "main activity txtcnt on click");
-                Intent intent = new Intent(MainActivity.this, CountingGame.class);
-             //   startActivity(intent);
-            }
-        });*/
-        Log.d(TAG,"MAINACTIVITY oncreate ends*************");
-    }//end of oncreate
 
     public void showTrainingsUI(){
         Log.d(TAG,"MAINACTIVITY showtrainingui");
